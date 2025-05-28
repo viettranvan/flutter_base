@@ -1,15 +1,15 @@
 # See https://www.dartlang.org/guides/libraries/private-files
 
 # Files and directories created by pub
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
 .dart_tool/
-.packages
-build/
-# If you're building an application, you may want to check-in your pubspec.lock
-pubspec.lock
-
-# Directory created by dartdoc
-# If you don't generate documentation locally you can remove this line.
-doc/api/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
 
 # dotenv environment variables file
 .env*
@@ -28,3 +28,24 @@ doc/api/
 
 # FVM Version Cache
 .fvm/
+
+# Symbolication related
+app.*.symbols
+
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Flutter config generate
+**/ios/Flutter/tmp.xcconfig
+
+# Flutter key files
+.key.*.json
+
+# Flutter test coverage generate
+coverage/
