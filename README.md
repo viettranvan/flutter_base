@@ -1,23 +1,66 @@
-# Overview
+## **My Flutter App**
 
-A basic Flutter project based on Clean Architecture and using Go Router
+[![Flutter Version](https://img.shields.io/badge/flutter-3.32.0-blue)](https://flutter.dev)
+[![Dart Version](https://img.shields.io/badge/dart-3.8.0-blue)](https://dart.dev)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
+
+A **Clean Architecture** Flutter starter project, using **Go Router** for navigation. Designed to be modular, testable, and scalable.
+
+---
+
+## 📖 Table of Contents
+
+1. [Overview](#overview)
+2. [Features](#features)
+3. [Architecture](#architecture)
+4. [Project Structure](#project-structure)
+5. [Getting Started](#getting-started)
+6. [Data Flow](#data-flow)
+7. [Testing](#testing)
+8. [Contributing](#contributing)
+9. [License](#license)
+
+---
+
+## 🔍 Overview
+
+A basic Flutter application built on **Clean Architecture** principles, with clear separation of concerns across presentation, domain, and data layers. Uses **Go Router** for declarative, type-safe routing.
+
+<details>
+  <summary>🛠 Environment</summary>
 
 ```
-[✓] Flutter (Channel stable, 3.32.0, on macOS 14.1.1 23B81 darwin-arm64, locale en-VN) [5.4s]
-    • Flutter version 3.32.0 on channel stable
-    • Engine revision 1881800949
-    • Dart version 3.8.0
-    • DevTools version 2.45.1
+Flutter (Channel stable, 3.32.0, on macOS 14.1.1 23B81 darwin-arm64, locale en-VN)
+• Flutter version 3.32.0 on channel stable
+• Engine revision 1881800949
+• Dart version 3.8.0
+• DevTools version 2.45.1
 
-[✓] Android toolchain - develop for Android devices (Android SDK version 33.0.2) [12.2s]
-    • Java version OpenJDK Runtime Environment (build 17.0.10+0-17.0.10b1087.21-11609105)
+Android toolchain (Android SDK version 33.0.2)
+• Java OpenJDK 17.0.10
 
-[✓] VS Code (version 1.91.1) [9ms]
-    • Flutter extension version 3.110.0
-
+VS Code (version 1.91.1)
+• Flutter extension v3.110.0
 ```
 
-## OVERVIEW OF CLEAN ARCHITECTURE MODEL
+</details>
+
+---
+
+## 🚀 Features
+
+* **Modular**: Layers (presentation, domain, data) clearly separated.
+* **Routing**: Uses Go Router for nested, declarative routes.
+* **State Management**: Supports Bloc, Riverpod, Provider, or your choice.
+* **Localization**: Built-in support with generated files in `generated/` and config in `l10n/`.
+* **Core Utilities**: Network handling, error management, and common constants.
+* **Theming & Assets**: Centralized design tokens and asset generation.
+* **Testing**: Ready-made unit and integration test setups.
+
+---
+
+## 🏗 Architecture
+
 
 ```
                     +--------------------------+
@@ -40,63 +83,45 @@ A basic Flutter project based on Clean Architecture and using Go Router
                     +--------------------------+
 
 ```
-1. `presentation/`:
-    * Tasks: UI (Widgets, Screens), state management (Bloc, Riverpod, Provider,...)
-    * Does not contain business logic.
-    * Only calls UseCase from domain.
-2. `domain/`: The central layer of the system, Includes:
-    * Entities: pure objects (pure models), not dependent on Flutter.
-    * UseCases: independent business logic.
-    * Abstract Repositories: defines what the repository needs to do (not concerned with installation).
-    
-    🔸 => This is the only layer that does not depend on any other layer.
-3. `data/`: Contains all specific settings:
-    * Model (usually from JSON API)
-    * DataSources (remote/local)
-    * Repository Implementations: implement interfaces in domain
 
-    Can call `http`, `shared_preferences`, `sqflite`, etc.
-  
-## Project structure
+1. **presentation/**
+
+   * UI: Widgets & Screens
+   * State: Bloc/Cubit, Riverpod, etc.
+   * Depends *only* on domain use cases.
+
+2. **domain/**
+
+   * Entities: Pure data models.
+   * UseCases: Business logic.
+   * Abstract Repositories: Contracts for data.
+
+3. **data/**
+
+   * Models: from JSON/API.
+   * DataSources: remote/local implementations.
+   * RepositoryImpl: Fulfills domain contracts.
+
+---
+
+## 📁 Project Structure
+
 ```
 lib/
-├── generated/                  # Generated localization files, codegen, etc.
-├── l10n/                       # App localization config
-├── src/                        # Main source code
-│   ├── core/                   # Core utilities: network, error handling
-│   │   ├── network/
-│   │   ├── errors.dart
-│   ├── features/               # Main app features
-│   │   ├── auth/               # Authentication feature
-│   │   │   ├── data/           # Data layer: API, models, repos
-│   │   │   │   ├── datasources/
-│   │   │   │   │   └── auth_remote_datasource.dart
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── authenticate_model.dart
-│   │   │   │   │   └── user_model.dart
-│   │   │   │   └── repositories/
-│   │   │   │       └── auth_repository_impl.dart
-│   │   │   ├── domain/         # Domain layer: entities, usecases, abstract repos
-│   │   │   │   ├── entities/
-│   │   │   │   │   ├── authenticate.dart
-│   │   │   │   │   └── user.dart
-│   │   │   │   ├── repositories/
-│   │   │   │   │   └── auth_repository.dart
-│   │   │   │   └── usecases/
-│   │   │   │       ├── login_usecase.dart
-│   │   │   │       └── register_user.dart
-│   │   │   ├── presentation/   # UI & state management
-│   │   │   │   ├── pages/      # UI
-│   │   │   │   ├── auth_index.dart   # Entry point for auth feature UI
-│   │   │   │   └── auth_injection.dart # Dependency injection for auth
-│   │   ├── home/               # Home feature
-│   │   ├── profile/            # Profile feature
-│   ├── app_nav.dart            # App navigation config
-│   ├── page_index.dart         # Page index mapping (navigation)
-│   ├── router/                 # Routing logic
-│   ├── injection_container.dart # Global Dependency Injection (get_it)
-├── main.dart                   # App entry point
-├── packages/                   # Third-party packages or local packages
+├── generated/             # Localization & codegen
+├── l10n/                  # Localization config
+├── src/                   # Core source
+│   ├── core/              # Network, errors, utils
+│   ├── features/          # Feature modules
+│   │   ├── auth/          # Authentication feature
+│   │   ├── home/          # Home feature
+│   │   └── profile/       # Profile feature
+│   ├── app_nav.dart       # Route definitions
+│   ├── page_index.dart    # Page mapping
+│   ├── router/            # Routing logic - Using go router
+│   └── injection_container.dart # Dependency Injection (GetIt)
+├── main.dart              # Entry point
+└── packages/              # Local & 3rd-party packages
 ```
 
 * `core/`: Contains common components (networking, error handling, constants).
@@ -114,30 +139,30 @@ lib/
     * Reusable Widgets: define common widgets (cache image, rating bar, shimmer, read-more)
     * Automation: generate_paths.dart scans the assets folder and “generates” a Dart file containing path constants—reducing errors when refactoring assets.
 
-    **Note:** To generate assets path, firstly you have to navigate to the root directory, then run following command:
-    ```bash
-    dart run packages/design_assets/tools/generate_paths.dart
-    ```
 
-## DATA FLOW
+> **Note:** Run `dart run packages/design_assets/tools/generate_paths.dart` to sync assets paths.
+
+---
+
+## ⚙️ Data Flow
+
 1. UI (`presentation`): Bloc handles event → call `usecase` in `domain`
 2. `UseCase` → call `repository` (abstract)
 3. `Repository` is implemented in `data` (`RepositoryImpl`), where API or database calls are made.
 4. `RepositoryImpl` convert `Model.toEntity()` → `Entity`
-4. Results flow back: `data` → `domain` (`UseCase`) → `presentation` (`Bloc`)
+5. Results flow back: `data` → `domain` (`UseCase`) → `presentation` (`Bloc`)
 
-## Unit test
+---
 
-1. **Main tool**: package using
-    * `flutter_test`: basic testing framework
-    * `mocktail`: mock and verify dependencies
-    * `dartz`: using `Either<L,R>` to test success/failure
-    * `bloc_test`: test the state flow of Bloc/Cubit
+## 🧪 Testing
 
-2. **Test writing flow**:
-    * `Model Tests`: Test AuthenticateModel.fromJson(...), .toEntity(), props.
-    * `Datasource Tests`: Mock `Dio` returns `Response` success/error, check datasource throws correct error or returns model.
-    * `Repository Tests`: Mock Dio returns Response success/error, check datasource throws correct error or returns model.
-    * `Repository Tests`: Mock datasource, when success returns `Right(entity)`, when datasource throws must catch and return `Left(ServerFailure)`.
-    * `UseCase Tests`: Mock repository, test `usecase.call(...)` returns correct Either.
-    * `Bloc Tests`: Mock usecase (and storage if any), use `blocTest` to send event, assert correct sequence of states, verify correct dependency call.
+* **Frameworks**: `flutter_test`, `bloc_test`, `mocktail`, `dartz`.
+* **Test Types**:
+
+  * Model: JSON serialization & entity conversion.
+  * DataSource: Mock API/DB responses.
+  * Repository: Success/failure via `Either<L, R>`.
+  * UseCase: Business logic validation.
+  * Presentation: Bloc/Cubit state flow.
+
+---
