@@ -34,4 +34,13 @@ flutter:
   uses-material-design: true
   generate: true
 flutter_intl:
-  enabled: true
+  enabled: true # Required. Must be set to true to activate the plugin. Default: false
+  # class_name: S # Optional. Name for the generated localization class. Default: S
+  # main_locale: en # Optional. The main locale for your app. Default: en
+  # arb_dir: lib/l10n # Optional. Directory containing ARB files. Default: lib/l10n
+  # output_dir: lib/generated # Optional. Directory for generated Dart localization files. Default: lib/generated
+  # use_deferred_loading: false # Optional. Whether to use deferred loading for the generated localization files. Default: false
+  # generate_timestamp: true # Optional. Appends timestamp to the generated files. Default: false
+  # localizely:
+  #   project_id: <YOUR_PROJECT_ID> # Optional. Localizely project ID for integrations
+
