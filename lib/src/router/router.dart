@@ -1,6 +1,7 @@
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/src/core/index.dart';
+import 'package:flutter_base/src/features/home/presentation/dependencies.dart';
 import 'package:flutter_base/src/features/page_index.dart';
 import 'package:go_router/go_router.dart';
 
@@ -39,7 +40,7 @@ class _AppRouter {
             name: RouteName.home.name,
             path: RouteName.home.path,
             pageBuilder: (context, state) =>
-                const NoTransitionPage(child: HomePage()),
+                NoTransitionPage(child: HomeDependencies.setupHome()),
             routes: _homeSubRoute,
           ),
           // * Profile Route

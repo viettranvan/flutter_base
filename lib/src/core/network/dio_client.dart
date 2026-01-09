@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 
+import '../config/env_config.dart';
 import 'index.dart';
 
 class DioClient {
@@ -8,9 +9,9 @@ class DioClient {
   DioClient() {
     dio = Dio(
       BaseOptions(
-        baseUrl: 'http://localhost:8081',
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
+        baseUrl: EnvConfig.getBaseUrl(),
+        connectTimeout: Duration(seconds: EnvConfig.getConnectTimeout()),
+        receiveTimeout: Duration(seconds: EnvConfig.getReceiveTimeout()),
         headers: {'Content-Type': 'application/json'},
       ),
     );
