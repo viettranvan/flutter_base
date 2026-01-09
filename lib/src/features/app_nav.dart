@@ -1,6 +1,6 @@
 import 'dart:developer' as dev;
 
-import 'package:app_core/utils/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/generated/l10n.dart';
 import 'package:flutter_base/src/router/router.dart';
@@ -48,11 +48,11 @@ class _AppNavScreenState extends State<AppNavScreen> {
             selectedItemColor: AppColors.primaryBrand900,
             unselectedItemColor: AppColors.coolGray400,
             selectedFontSize: 12,
-            selectedLabelStyle: AppTextStyle.of(
+            selectedLabelStyle: AppTypography.of(
               size: 12,
               color: AppColors.primaryBrand900,
             ),
-            unselectedLabelStyle: AppTextStyle.of(
+            unselectedLabelStyle: AppTypography.of(
               size: 12,
               color: AppColors.coolGray400,
             ),

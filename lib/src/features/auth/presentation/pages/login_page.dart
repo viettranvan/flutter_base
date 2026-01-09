@@ -1,4 +1,4 @@
-import 'package:app_core/utils/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/src/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:flutter_base/src/injection_container.dart';
@@ -77,7 +77,7 @@ class LoginPage extends StatelessWidget {
                       child: Center(
                         child: Text(
                           "Login",
-                          style: AppTextStyle.of(color: AppColors.white900),
+                          style: AppTypography.of(color: AppColors.white900),
                         ),
                       ),
                     ),

@@ -1,4 +1,4 @@
-import 'package:app_core/utils/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
 enum AppFontWeight {
@@ -17,7 +17,15 @@ enum AppFontWeight {
   final FontWeight fontWeight;
 }
 
-class AppTextStyle {
+class AppTypography {
+  AppTypography._();
+
+  static TextStyle get headline1 => AppTypography.of(
+        size: 32,
+        weight: AppFontWeight.bold,
+        height: 1.2,
+      );
+
   static TextStyle of({
     double? size,
     Color color = AppColors.primaryBrand500,

@@ -1,4 +1,3 @@
-
 import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 
@@ -30,7 +29,7 @@ class AppButton extends StatelessWidget {
         child: Center(
           child: Text(
             title,
-            style: AppTextStyle.of(
+            style: AppTypography.of(
               size: 16,
               color: AppColors.white900,
               weight: AppFontWeight.bold,
