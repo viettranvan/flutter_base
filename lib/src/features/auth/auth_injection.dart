@@ -1,4 +1,4 @@
-import 'package:design_assets/design_assets.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 import 'package:flutter_base/src/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:flutter_base/src/injection_container.dart';

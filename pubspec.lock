@@ -17,6 +17,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.7.1"
+  app_core:
+    dependency: "direct main"
+    description:
+      path: "packages/app_core"
+      relative: true
+    source: path
+    version: "0.0.1"
   args:
     dependency: transitive
     description:
@@ -153,13 +160,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.10.1"
-  design_assets:
-    dependency: "direct main"
-    description:
-      path: "packages/design_assets"
-      relative: true
-    source: path
-    version: "0.0.1"
   diff_match_patch:
     dependency: transitive
     description:
@@ -307,7 +307,7 @@ packages:
     source: hosted
     version: "3.1.2"
   flutter_svg:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_svg
       sha256: "87fbd7c534435b6c5d9d98b01e1fd527812b82e68ddd8bd35fc45ed0fa8f0a95"

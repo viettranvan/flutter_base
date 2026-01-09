@@ -19,7 +19,7 @@ class CodeToken {
 /// =======================
 ///
 /// Example input:
-/// dart run packages/design_assets/tools/generate_paths.dart
+/// dart run packages/app_core/tools/generate_paths.dart
 ///
 List<CodeToken> parseCommand(String command) {
   final parts = command.trim().split(RegExp(r'\s+'));

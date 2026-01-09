@@ -2,11 +2,11 @@
 This file is AUTO-GENERATED. DO NOT MODIFY BY HAND.
 To regenerate this file, Navigate to root path of the project and run this script to generate paths for assets:
 ``` bash
-dart run packages/design_assets/tools/generate_paths.dart
+dart run packages/app_core/tools/generate_paths.dart
 ```
 */
 
-const _basePath = 'packages/design_assets/assets';
+const _basePath = 'packages/app_core/assets';
 
 class AssetsPath {
   static const IconAssets icons = IconAssets._();

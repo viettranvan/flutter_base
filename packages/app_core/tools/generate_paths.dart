@@ -4,13 +4,13 @@ import 'dart:io';
 
 /// Navigate to root path of the project and run this script to generate paths for assets.
 /// ``` bash
-/// dart run packages/design_assets/tools/generate_paths.dart
+/// dart run packages/app_core/tools/generate_paths.dart
 ///
 /// ```
 void main() {
   final projectRoot = Directory.current.path;
-  final iconsPath = '$projectRoot/packages/design_assets/assets/icons/';
-  final imagePath = '$projectRoot/packages/design_assets/assets/images/';
+  final iconsPath = '$projectRoot/packages/app_core/assets/icons/';
+  final imagePath = '$projectRoot/packages/app_core/assets/images/';
 
   final iconDir = Directory(iconsPath);
   final imageDir = Directory(imagePath);
@@ -24,10 +24,10 @@ void main() {
       'This file is AUTO-GENERATED. DO NOT MODIFY BY HAND.\n'
       'To regenerate this file, Navigate to root path of the project and run this script to generate paths for assets:\n'
       '``` bash\n'
-      'dart run packages/design_assets/tools/generate_paths.dart\n'
+      'dart run packages/app_core/tools/generate_paths.dart\n'
       '```\n'
       '*/\n\n'
-      'const _basePath = \'packages/design_assets/assets\';\n\n');
+      'const _basePath = \'packages/app_core/assets\';\n\n');
 
   // Collect icon and image names first
   final iconNames = <String>[];
@@ -97,7 +97,7 @@ void main() {
   buffer.writeln('}');
 
   final outputPath =
-      '$projectRoot/packages/design_assets/lib/utils/assets_path.dart';
+      '$projectRoot/packages/app_core/lib/utils/assets_path.dart';
   File(outputPath).writeAsStringSync(buffer.toString());
 
   print('✅ Generated: $outputPath');

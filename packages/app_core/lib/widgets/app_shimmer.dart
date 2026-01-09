@@ -1,6 +1,6 @@
 library;
 
-import 'package:design_assets/utils/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 

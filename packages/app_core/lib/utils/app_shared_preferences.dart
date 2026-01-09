@@ -1,4 +1,3 @@
-// Ví dụ sử dụng SharedPreferences
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppPreferencesKey {

@@ -1,5 +1,5 @@
-name: design_assets
-description: "A new Flutter package project."
+name: app_core
+description: "Core design system and utilities for the app."
 version: 0.0.1
 
 environment:
@@ -13,6 +13,7 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   flutter_secure_storage: ^9.2.4
   shared_preferences: ^2.5.3
+  flutter_svg: ^2.2.3
 
 
 dev_dependencies:

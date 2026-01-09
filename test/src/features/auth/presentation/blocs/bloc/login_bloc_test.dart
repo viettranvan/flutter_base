@@ -1,6 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:dartz/dartz.dart';
-import 'package:design_assets/design_assets.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 import 'package:flutter_base/src/features/auth/presentation/blocs/login/login_bloc.dart';

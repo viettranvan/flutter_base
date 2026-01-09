@@ -1,11 +1,9 @@
 import 'dart:developer' as dev;
 
+import 'package:app_core/app_core.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:design_assets/utils/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-
-import 'index.dart';
 
 class AppCacheImageNetwork extends StatefulWidget {
   const AppCacheImageNetwork(

@@ -1,4 +1,4 @@
-import 'package:design_assets/design_assets.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/generated/l10n.dart';
 import 'package:flutter_base/src/injection_container.dart';
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
       routerConfig: appRouter.router,
       theme: ThemeData(
         fontFamily: 'PlusJakartaSans',
-        package: 'design_assets',
+        package: 'app_core',
         bottomSheetTheme: const BottomSheetThemeData(
           backgroundColor: AppColors.white900,
         ),

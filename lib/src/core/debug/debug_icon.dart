@@ -1,7 +1,6 @@
-import 'package:design_assets/utils/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
 // ignore: depend_on_referenced_packages
 import 'package:xml/xml.dart';
 
@@ -43,7 +42,7 @@ class DebugIconPage extends StatelessWidget {
               'At the root of project, run following command to generate icon paths:',
             ),
             CodeBlock(
-              code: 'dart run packages/design_assets/tools/generate_paths.dart',
+              code: 'dart run packages/app_core/tools/generate_paths.dart',
             ),
             const Text('ICON LIST:'),
             Expanded(
@@ -85,7 +84,7 @@ class DebugIconPage extends StatelessWidget {
                             );
                           },
                         ),
-                        Expanded(child: SvgPicture.asset(assetPath)),
+                        Expanded(child: AppIcon(assetPath)),
                       ],
                     ),
                   );

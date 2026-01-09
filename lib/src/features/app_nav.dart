@@ -1,6 +1,6 @@
 import 'dart:developer' as dev;
 
-import 'package:design_assets/utils/index.dart';
+import 'package:app_core/utils/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/generated/l10n.dart';
 import 'package:flutter_base/src/router/router.dart';

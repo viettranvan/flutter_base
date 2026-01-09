@@ -1,4 +1,4 @@
-import 'package:design_assets/widgets/index.dart';
+import 'package:app_core/widgets/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/src/core/index.dart';
 

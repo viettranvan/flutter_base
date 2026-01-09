@@ -1,4 +1,4 @@
-import 'package:design_assets/design_assets.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/generated/l10n.dart';
 import 'package:flutter_base/src/core/config/env_config.dart';

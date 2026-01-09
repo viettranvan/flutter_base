@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:app_core/app_core.dart';
 import 'package:bloc/bloc.dart';
-import 'package:design_assets/design_assets.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
