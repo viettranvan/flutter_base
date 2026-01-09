@@ -73,6 +73,11 @@ class S {
   String get profile {
     return Intl.message('Profile', name: 'profile', desc: '', args: []);
   }
+
+  /// `Logout`
+  String get logout {
+    return Intl.message('Logout', name: 'logout', desc: '', args: []);
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

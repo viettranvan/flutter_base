@@ -1,5 +1,6 @@
 import 'package:design_assets/design_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/page_index.dart';
 import 'package:go_router/go_router.dart';
 
@@ -58,6 +59,15 @@ class _AppRouter {
         path: RouteName.signIn.path,
         builder: (context, state) => const LoginPage(),
       ),
+
+      /* Debug Route - For debugging purposes - Development only */
+      GoRoute(
+        path: RouteName.debug.path,
+        builder: (context, state) => const DebugPage(),
+        redirect: (context, state) async {
+          return EnvConfig.isDevelopment() ? null : '/';
+        },
+      ),
     ],
     redirect: (context, state) async {
       final publicPaths = {RouteName.signIn.path, RouteName.signUp.path};
@@ -65,11 +75,11 @@ class _AppRouter {
       final accessToken = await appStorage.getValue(AppStorageKey.accessToken);
       final currentPath = state.uri.path;
       final isLoggedIn = (accessToken ?? '').isNotEmpty;
-      // Nếu đã đăng nhập mà đang ở trang public => chuyển sang trang home
+      // if already logged in and trying to access a public page => redirect to home
       if (isLoggedIn && publicPaths.contains(currentPath)) {
         return '/';
       }
-      // Nếu chưa đăng nhập mà đang ở trang cần bảo vệ => chuyển về signIn
+      // if not logged in and trying to access a protected page => redirect to signIn
       if (!isLoggedIn && !publicPaths.contains(currentPath)) {
         return RouteName.signIn.path;
       }

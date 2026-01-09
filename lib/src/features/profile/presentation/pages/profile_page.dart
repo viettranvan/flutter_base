@@ -1,5 +1,7 @@
 import 'package:design_assets/design_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_base/generated/l10n.dart';
+import 'package:flutter_base/src/core/config/env_config.dart';
 import 'package:flutter_base/src/router/router.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,39 +11,36 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Center(
+      appBar: AppBar(title: Text(S.of(context).profile)),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('Profile Page'),
             const SizedBox(height: 20),
-            InkWell(
-              onTap: () async {
+            Visibility(
+              visible: EnvConfig.isDevelopment(),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: AppButton(
+                  onPressed: () async {
+                    if (context.mounted) {
+                      context.push(RouteName.debug.path);
+                    }
+                  },
+                  title: 'Debug',
+                ),
+              ),
+            ),
+            AppButton(
+              onPressed: () async {
                 await appStorage.deleteValue(AppStorageKey.accessToken);
                 await appStorage.deleteValue(AppStorageKey.refreshToken);
                 if (context.mounted) {
                   context.pushReplacement(RouteName.signIn.path);
                 }
               },
-              child: Container(
-                height: 54,
-                constraints: const BoxConstraints(maxWidth: 400),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBrand900,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    'Log out',
-                    style: AppTextStyle.of(
-                      size: 16,
-                      color: AppColors.white900,
-                      weight: AppFontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
+              title: S.current.logout,
             ),
           ],
         ),

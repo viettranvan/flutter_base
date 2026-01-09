@@ -22,7 +22,6 @@ class _AppNavScreenState extends State<AppNavScreen> {
   void initState() {
     final router = appRouter.router;
     appRouter.router.routerDelegate.addListener(() {
-      // Cách 1: thông qua routeInformationProvider
       final location = router.routeInformationProvider.value.uri;
       dev.log('🏷️ Current full path: $location');
     });
@@ -77,7 +76,6 @@ class _AppNavScreenState extends State<AppNavScreen> {
 
               BottomNavigationBarItem(
                 label: S.of(context).profile,
-
                 icon: Icon(
                   Icons.person,
                   color: currentIndex == 1

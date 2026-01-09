@@ -14,37 +14,86 @@ void main() {
 
   final iconDir = Directory(iconsPath);
   final imageDir = Directory(imagePath);
-  final buffer = StringBuffer(
-      'const _basePath = \'packages/design_assets/assets\';\n\nclass AssetsPath {\n  // === ICONS PATH ===\n');
 
   if (!iconDir.existsSync() || !imageDir.existsSync()) {
     print('❌ Folder not found $iconsPath or $imagePath');
     return;
   }
 
+  final buffer = StringBuffer('/*\n'
+      'This file is AUTO-GENERATED. DO NOT MODIFY BY HAND.\n'
+      'To regenerate this file, Navigate to root path of the project and run this script to generate paths for assets:\n'
+      '``` bash\n'
+      'dart run packages/design_assets/tools/generate_paths.dart\n'
+      '```\n'
+      '*/\n\n'
+      'const _basePath = \'packages/design_assets/assets\';\n\n');
+
+  // Collect icon and image names first
+  final iconNames = <String>[];
+  final imageNames = <String>[];
+
   for (var file in iconDir.listSync()) {
     if (file is File) {
       final fileName = file.uri.pathSegments.last;
-      if (fileName == '.DS_Store') continue; // Skip .DS_Store file
-      final name = fileName.split('.').first;
-      buffer.writeln(
-        "  static const String ${_toCamelCase(name)} = '\$_basePath/icons/$fileName';",
-      );
+      if (fileName == '.DS_Store') continue;
+      final name = _toCamelCase(fileName.split('.').first);
+      iconNames.add(name);
     }
   }
-  buffer.writeln("\n  // === IMAGES PATH === ");
 
   for (var file in imageDir.listSync()) {
     if (file is File) {
       final fileName = file.uri.pathSegments.last;
-      if (fileName == '.DS_Store') continue; // Skip .DS_Store file
-      final name = fileName.split('.').first;
+      if (fileName == '.DS_Store') continue;
+      final name = _toCamelCase(fileName.split('.').first);
+      imageNames.add(name);
+    }
+  }
+
+  // Generate main AssetsPath class first
+  buffer.writeln('class AssetsPath {');
+  buffer.writeln('  static const IconAssets icons = IconAssets._();');
+  buffer.writeln('  static const ImageAssets images = ImageAssets._();');
+  buffer.writeln('}\n');
+
+  // Generate IconAssets class
+  buffer.writeln('class IconAssets {');
+  buffer.writeln('  const IconAssets._();\n');
+
+  for (var file in iconDir.listSync()) {
+    if (file is File) {
+      final fileName = file.uri.pathSegments.last;
+      if (fileName == '.DS_Store') continue;
+      final name = _toCamelCase(fileName.split('.').first);
       buffer.writeln(
-        "  static const String ${_toCamelCase(name)} = '\$_basePath/images/$fileName';",
+        "  static const String $name = '\$_basePath/icons/$fileName';",
       );
     }
   }
 
+  // Add all icons list for debug
+  buffer.writeln('\n  static const List<String> all = [');
+  for (var name in iconNames) {
+    buffer.writeln('    $name,');
+  }
+  buffer.writeln('  ];');
+  buffer.writeln('}\n');
+
+  // Generate ImageAssets class
+  buffer.writeln('class ImageAssets {');
+  buffer.writeln('  const ImageAssets._();\n');
+
+  for (var file in imageDir.listSync()) {
+    if (file is File) {
+      final fileName = file.uri.pathSegments.last;
+      if (fileName == '.DS_Store') continue;
+      final name = _toCamelCase(fileName.split('.').first);
+      buffer.writeln(
+        "  static const String $name = '\$_basePath/images/$fileName';",
+      );
+    }
+  }
   buffer.writeln('}');
 
   final outputPath =

@@ -8,15 +8,14 @@
             "name": "Dev",
             "request": "launch",
             "type": "dart",
-            // "toolArgs": ["--dart-define-from-file", ".key.dev.json"] 
+            "toolArgs": ["--dart-define-from-file", ".key.dev.json"]
         },
         {
             "name": "Dev-Profile (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
-            // "toolArgs": ["--dart-define-from-file", ".key.dev.json"] 
-
+            "toolArgs": ["--dart-define-from-file", ".key.dev.json"]
         },
         {
             "name": "Staging",

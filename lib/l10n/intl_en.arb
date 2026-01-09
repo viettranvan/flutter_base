@@ -3,5 +3,6 @@
     "login": "Login",
     "signout": "Sign Out",
     "home": "Home",
-    "profile": "Profile"
+    "profile": "Profile",
+    "logout": "Logout"
 }
