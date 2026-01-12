@@ -1,7 +1,5 @@
-import 'package:bloc_test/bloc_test.dart';
-import 'package:dartz/dartz.dart';
 import 'package:app_core/app_core.dart';
-import 'package:flutter_base/src/core/index.dart';
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 import 'package:flutter_base/src/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,7 +49,7 @@ void main() {
       build: () {
         when(
           () => mockLoginUsecase(email: tEmail, password: tPassword),
-        ).thenAnswer((_) async => const Right(tAuth));
+        ).thenAnswer((_) async => tAuth);
 
         when(
           () =>
@@ -93,11 +91,29 @@ void main() {
     );
 
     blocTest<LoginBloc, LoginState>(
-      'emits [LoginLoading, LoginInitial] when login fails',
+      'emits [LoginLoading, LoginInitial] when login throws ServerException',
       build: () {
         when(
           () => mockLoginUsecase(email: tEmail, password: tPassword),
-        ).thenAnswer((_) async => Left(ServerFailure('Server error')));
+        ).thenThrow(ServerException(message: 'Server error', statusCode: 500));
+
+        return bloc;
+      },
+      act: (bloc) => bloc.add(LoginRequested()),
+      expect: () => [LoginLoading(), LoginInitial()],
+      verify: (_) {
+        verify(
+          () => mockLoginUsecase(email: tEmail, password: tPassword),
+        ).called(1);
+      },
+    );
+
+    blocTest<LoginBloc, LoginState>(
+      'emits [LoginLoading, LoginInitial] when login throws GenericException',
+      build: () {
+        when(
+          () => mockLoginUsecase(email: tEmail, password: tPassword),
+        ).thenThrow(GenericException(message: 'Unexpected error'));
 
         return bloc;
       },

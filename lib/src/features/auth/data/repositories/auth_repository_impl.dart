@@ -1,5 +1,3 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
@@ -8,17 +6,10 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this.datasource);
 
   @override
-  Future<Either<Failure, Authenticate>> login(
-    String email,
-    String password,
-  ) async {
-    try {
-      final userModel = await datasource.login(email, password);
-      final auth = userModel.toEntity();
-
-      return Right(auth);
-    } on Exception catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+  Future<Authenticate> login(String email, String password) async {
+    // ✅ Datasource đã handle exceptions
+    // Just transform model to entity
+    final userModel = await datasource.login(email, password);
+    return userModel.toEntity();
   }
 }

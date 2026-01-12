@@ -3,7 +3,9 @@
 class EnvConfig {
   // Environment keys
   static const String _envKey = 'ENV';
-  static const String _baseUrlKey = 'BASE_URL';
+  static const String _jsonPlaceholderUrlKey = 'JSONPLACE_HOLDER_API';
+  static const String _dummyJsonUrlKey = 'DUMMY_JSON_API';
+
   static const String _connectTimeoutKey = 'CONNECT_TIMEOUT';
   static const String _receiveTimeoutKey = 'RECEIVE_TIMEOUT';
 
@@ -13,10 +15,17 @@ class EnvConfig {
   }
 
   /// Get API base URL
-  static String getBaseUrl() {
+  static String getJsonPlaceholderUrl() {
     return const String.fromEnvironment(
-      _baseUrlKey,
+      _jsonPlaceholderUrlKey,
       defaultValue: 'https://jsonplaceholder.typicode.com',
+    );
+  }
+
+  static String getDummyJsonUrl() {
+    return const String.fromEnvironment(
+      _dummyJsonUrlKey,
+      defaultValue: 'https://dummyjson.com',
     );
   }
 

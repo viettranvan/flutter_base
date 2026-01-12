@@ -1,5 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter_base/src/core/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -26,30 +25,60 @@ void main() {
     // arrange
     when(
       () => mockAuthRepository.login(email, password),
-    ).thenAnswer((_) async => const Right(authenticate));
+    ).thenAnswer((_) async => authenticate);
 
     // act
     final result = await usecase(email: email, password: password);
 
     // assert
-    expect(result, const Right(authenticate));
+    expect(result, authenticate);
+    expect(result.accessToken, equals('token123'));
+    expect(result.refreshToken, equals('refresh123'));
+
     verify(() => mockAuthRepository.login(email, password)).called(1);
     verifyNoMoreInteractions(mockAuthRepository);
   });
 
-  test('should return Failure when repository returns failure', () async {
-    // arrange
-    final failure = ServerFailure('Server error');
-    when(
-      () => mockAuthRepository.login(email, password),
-    ).thenAnswer((_) async => Left(failure));
+  test(
+    'should throw ServerException when repository throws exception',
+    () async {
+      // arrange
+      final exception = ServerException(
+        message: 'Server error',
+        statusCode: 500,
+      );
+      when(
+        () => mockAuthRepository.login(email, password),
+      ).thenThrow(exception);
 
-    // act
-    final result = await usecase(email: email, password: password);
+      // act & assert
+      expect(
+        () => usecase(email: email, password: password),
+        throwsA(isA<ServerException>()),
+      );
 
-    // assert
-    expect(result, Left(failure));
-    verify(() => mockAuthRepository.login(email, password)).called(1);
-    verifyNoMoreInteractions(mockAuthRepository);
-  });
+      verify(() => mockAuthRepository.login(email, password)).called(1);
+      verifyNoMoreInteractions(mockAuthRepository);
+    },
+  );
+
+  test(
+    'should throw GenericException when repository throws generic error',
+    () async {
+      // arrange
+      final exception = GenericException(message: 'Generic error');
+      when(
+        () => mockAuthRepository.login(email, password),
+      ).thenThrow(exception);
+
+      // act & assert
+      expect(
+        () => usecase(email: email, password: password),
+        throwsA(isA<GenericException>()),
+      );
+
+      verify(() => mockAuthRepository.login(email, password)).called(1);
+      verifyNoMoreInteractions(mockAuthRepository);
+    },
+  );
 }

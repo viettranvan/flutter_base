@@ -1,5 +1,4 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter_base/src/core/index.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -31,50 +30,50 @@ void main() {
     user: userModel,
   );
 
+  test('should return Authenticate when datasource returns model', () async {
+    // arrange
+    when(
+      () => mockDatasource.login(email, password),
+    ).thenAnswer((_) async => authenticateModel);
+
+    // act
+    final result = await repository.login(email, password);
+
+    // assert
+    expect(result, equals(authenticateModel.toEntity()));
+    expect(result.accessToken, equals('access-token'));
+    expect(result.refreshToken, equals('refresh-token'));
+
+    verify(() => mockDatasource.login(email, password)).called(1);
+    verifyNoMoreInteractions(mockDatasource);
+  });
+
+  test('should throw AppException when datasource throws exception', () async {
+    // arrange
+    final exception = ServerException(message: 'Server error', statusCode: 500);
+    when(() => mockDatasource.login(email, password)).thenThrow(exception);
+
+    // act & assert
+    expect(
+      () => repository.login(email, password),
+      throwsA(isA<ServerException>()),
+    );
+
+    verify(() => mockDatasource.login(email, password)).called(1);
+    verifyNoMoreInteractions(mockDatasource);
+  });
+
   test(
-    'should return Right(Authenticate) when datasource returns model',
+    'should throw GenericException when datasource throws generic error',
     () async {
       // arrange
-      when(
-        () => mockDatasource.login(email, password),
-      ).thenAnswer((_) async => authenticateModel);
+      final exception = GenericException(message: 'Generic error');
+      when(() => mockDatasource.login(email, password)).thenThrow(exception);
 
-      // act
-      final result = await repository.login(email, password);
-
-      // assert
-      expect(result.isRight(), true);
-      expect(result, equals(Right(authenticateModel.toEntity())));
-
-      verify(() => mockDatasource.login(email, password)).called(1);
-      verifyNoMoreInteractions(mockDatasource);
-    },
-  );
-
-  test(
-    'should return Left(ServerFailure) when datasource throws exception',
-    () async {
-      // arrange
-      when(
-        () => mockDatasource.login(email, password),
-      ).thenThrow(Exception('Server error'));
-
-      // act
-      final result = await repository.login(email, password);
-
-      // assert
-      expect(result.isLeft(), true);
+      // act & assert
       expect(
-        result,
-        isA<Left<Failure, Authenticate>>().having(
-          (l) => l.value,
-          'failure',
-          isA<ServerFailure>(),
-        ),
-      );
-      expect(
-        result.fold((l) => l.message, (_) => ''),
-        equals('Exception: Server error'),
+        () => repository.login(email, password),
+        throwsA(isA<GenericException>()),
       );
 
       verify(() => mockDatasource.login(email, password)).called(1);

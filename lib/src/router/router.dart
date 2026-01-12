@@ -40,7 +40,7 @@ class _AppRouter {
             name: RouteName.home.name,
             path: RouteName.home.path,
             pageBuilder: (context, state) =>
-                NoTransitionPage(child: HomeDependencies.setupHome()),
+                NoTransitionPage(child: HomeDependencies.buildHomePage()),
             routes: _homeSubRoute,
           ),
           // * Profile Route

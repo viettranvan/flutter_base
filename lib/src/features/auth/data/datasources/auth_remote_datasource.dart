@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 
 abstract class LoginRemoteDatasource {
@@ -6,42 +6,66 @@ abstract class LoginRemoteDatasource {
 }
 
 class AuthRemoteDatasource {
-  AuthRemoteDatasource(this.dio);
-  final Dio dio;
+  AuthRemoteDatasource(this.httpClient);
+  final HttpClient httpClient;
 
-  Future<AuthenticateModel> login(String email, String password) async {
+  /// Login using reqres.in public API
+  ///
+  /// ReqRes API: POST /login
+  /// Required fields: email, password
+  /// Test credentials:
+  /// - email: eve.holt@reqres.in
+  /// - password: any value (API doesn't validate)
+  ///
+  /// Throws: [ServerException], [GenericException]
+  Future<AuthenticateModel> login(String userName, String password) async {
     try {
-      // Mô phỏng thời gian chờ (API delay)
-      await Future.delayed(const Duration(seconds: 1));
+      final response = await httpClient.post(
+        '/auth/login',
+        data: {'username': userName, 'password': password},
+      );
 
-      // Dữ liệu mock
-      final mockData = {
-        "refresh_token": "access-token",
-        "token": "refresh-token",
-        "user": {
-          "id": 10,
-          "full_name": "Ryuk Tran",
-          "email": "ryuk@handsome.com",
-          "phone_number": "+84123123123",
-          "created_at": "2025-05-22 10:56:46",
-        },
-      };
+      // Validate status code (2xx is success)
+      if (response.statusCode == null || response.statusCode! ~/ 100 != 2) {
+        throw ServerException(
+          message: response.data?['error'] ?? 'Login failed',
+          statusCode: response.statusCode,
+        );
+      }
 
-      // Chuyển thành UserModel
-      return AuthenticateModel.fromJson(mockData);
+      // Validate response data
+      final data = response.data;
+      if (data is! Map<String, dynamic>) {
+        throw GenericException(message: 'Invalid login response format');
+      }
 
-      // final response = await dio.post(
-      //   '/auth/sign-in',
-      //   data: {'email': email, 'password': password},
-      // );
-
-      // if (response.statusCode == 200) {
-      //   return AuthenticateModel.fromJson(response.data['data']);
-      // } else {
-      //   throw Exception();
-      // }
-    } catch (e) {
+      try {
+        // Map reqres.in response to AuthenticateModel
+        return AuthenticateModel.fromJson({
+          'token': data['accessToken'],
+          'refresh_token': data['refreshToken'],
+          'user': {
+            'id': data['id'] ?? 0,
+            'full_name': data['username'] ?? '',
+            'email': data['email'] ?? '',
+            'phone_number': '',
+            'created_at': DateTime.now().toString(),
+          },
+        });
+      } catch (e) {
+        // Nếu là AppException, throw lên (bubble up)
+        if (e is AppException) rethrow;
+        // Xử lý parsing error (từ AuthenticateModel.fromJson)
+        throw GenericException(
+          message: 'Error parsing login response: ${e.toString()}',
+        );
+      }
+    } on AppException {
+      // Bubble up AppException (ServerException, GenericException, etc.)
       rethrow;
+    } catch (e) {
+      // Catch all unhandled exceptions
+      throw GenericException(message: 'Login failed: ${e.toString()}');
     }
   }
 }

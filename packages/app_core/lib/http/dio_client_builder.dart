@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import 'package:app_core/app_core.dart';
 
 /// Logging level for HTTP requests
 enum HttpLogLevel {
@@ -113,6 +113,10 @@ class DioClientBuilder {
             headers: _defaultHeaders ?? {},
           ),
         );
+
+    // Always add logging interceptor and error interceptor
+    dio.interceptors.add(LoggingInterceptor());
+    dio.interceptors.add(ErrorInterceptor());
 
     // Add custom interceptors
     for (final interceptor in _additionalInterceptors) {

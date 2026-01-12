@@ -1,7 +1,6 @@
-import 'package:dio/dio.dart';
+import 'package:app_core/app_core.dart';
 
 import '../../../../core/constants/api_endpoints.dart';
-import '../../../../core/network/exceptions.dart';
 import '../models/user_model.dart';
 
 abstract class UserRemoteDataSource {
@@ -9,54 +8,43 @@ abstract class UserRemoteDataSource {
 }
 
 class UserRemoteDataSourceImpl implements UserRemoteDataSource {
-  final Dio dio;
+  final HttpClient httpClient;
 
-  UserRemoteDataSourceImpl({required this.dio});
+  UserRemoteDataSourceImpl({required this.httpClient});
 
   @override
   Future<List<UserModel>> getUsers() async {
+    final response = await httpClient.get(ApiEndpoints.users);
+
+    // Check if response is successful (2xx status code)
+    if (response.statusCode == null || response.statusCode! ~/ 100 != 2) {
+      throw ServerException(
+        message: 'Failed to fetch users',
+        statusCode: response.statusCode,
+      );
+    }
+
+    // Validate and parse response data
+    final data = response.data;
+    if (data is! List) {
+      throw GenericException(message: 'Invalid response format');
+    }
+
     try {
-      final response = await dio.get(ApiEndpoints.users);
-
-      // Check if response is successful (2xx status code)
-      if (response.statusCode == null || response.statusCode! ~/ 100 != 2) {
-        throw ApiException(
-          'Failed to fetch users',
-          statusCode: response.statusCode,
-        );
-      }
-
-      // Validate and parse response data
-      final data = response.data;
-      if (data is! List) {
-        throw ParsingException(
-          'Invalid response format',
-          originalException: data,
-        );
-      }
-
       final users = data.map((json) {
         if (json is! Map<String, dynamic>) {
-          throw ParsingException(
-            'Invalid user object format',
-            originalException: json,
-          );
+          throw GenericException(message: 'Invalid user object format');
         }
         return UserModel.fromJson(json);
       }).toList();
 
       return users;
-    } on DioException catch (e) {
-      throw DioNetworkException(
-        'Network error: ${e.message}',
-        originalException: e,
-      );
-    } on NetworkException {
-      rethrow;
     } catch (e) {
-      throw ParsingException(
-        'Unexpected error: ${e.toString()}',
-        originalException: e,
+      // ✅ Nếu là AppException, throw lên (bubble up)
+      if (e is AppException) rethrow;
+      // Xử lý parsing error (từ UserModel.fromJson)
+      throw GenericException(
+        message: 'Error parsing user data: ${e.toString()}',
       );
     }
   }

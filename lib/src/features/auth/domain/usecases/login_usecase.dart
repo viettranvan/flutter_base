@@ -1,5 +1,3 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 
 class LoginUsecase {
@@ -7,7 +5,9 @@ class LoginUsecase {
 
   LoginUsecase(this._authRepository);
 
-  Future<Either<Failure, Authenticate>> call({
+  /// Login with email and password
+  /// Throws: [AppException] on error
+  Future<Authenticate> call({
     required String email,
     required String password,
   }) async {
