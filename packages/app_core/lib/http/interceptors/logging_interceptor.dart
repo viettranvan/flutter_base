@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math' as math;
 
 import 'package:dio/dio.dart';
@@ -60,6 +61,7 @@ class LoggingInterceptor extends Interceptor {
     if (kDebugMode) {
       if (request) {
         _printRequestHeader(options);
+        _printCurlCommand(options);
       }
       if (requestHeader) {
         _printMapAsTable(options.queryParameters, header: 'Query Parameters');
@@ -187,6 +189,56 @@ class LoggingInterceptor extends Interceptor {
     _printBoxed(header: 'Request ║ $method ', text: uri.toString());
   }
 
+  void _printCurlCommand(RequestOptions options) {
+    final uri = options.uri;
+    final method = options.method;
+
+    // Build curl command
+    final parts = <String>[];
+    parts.add('curl -X $method');
+    parts.add('"$uri"');
+
+    // Add headers
+    options.headers.forEach((key, value) {
+      if (key.toLowerCase() != 'host' &&
+          key.toLowerCase() != 'content-length' &&
+          key.toLowerCase() != 'accept-encoding') {
+        parts.add('-H "$key: $value"');
+      }
+    });
+
+    // Add body if not GET
+    if (method != 'GET' && options.data != null) {
+      String bodyStr = '';
+      if (options.data is Map) {
+        bodyStr = jsonEncode(options.data);
+      } else if (options.data is String) {
+        bodyStr = options.data.toString();
+      } else {
+        bodyStr = options.data.toString();
+      }
+      // Escape quotes in body
+      bodyStr = bodyStr.replaceAll('"', '\\"');
+      parts.add('-d "$bodyStr"');
+    }
+
+    // Join with space and backslash for line continuation
+    final curlCommand = parts.join(' \\\n');
+
+    logPrint('');
+    logPrint('╔╣ cURL Command');
+    logPrint('║');
+
+    // Print curl command lines with box format
+    final curlLines = curlCommand.split('\n');
+    for (final line in curlLines) {
+      logPrint('║  $line');
+    }
+
+    logPrint('║');
+    _printLine('╚');
+  }
+
   void _printLine([String pre = '', String suf = '╝']) =>
       logPrint('$pre${'═' * maxWidth}$suf');
 
@@ -253,17 +305,23 @@ class LoggingInterceptor extends Interceptor {
         }
       } else {
         final msg = value.toString().replaceAll('\n', '');
-        final indent = _indent(tabs);
-        final linWidth = maxWidth - indent.length;
-        if (msg.length + indent.length > linWidth) {
+        final keyPrefix = '║${_indent(tabs)} $key: ';
+        final linWidth = maxWidth - _indent(tabs).length;
+
+        if (msg.length + keyPrefix.length > maxWidth) {
+          // String too long, print key and split value across multiple lines
+          logPrint(keyPrefix);
           final lines = (msg.length / linWidth).ceil();
           for (var i = 0; i < lines; ++i) {
+            final startIdx = i * linWidth;
+            final endIdx = math.min<int>(i * linWidth + linWidth, msg.length);
+            final isLastLine = i == lines - 1;
             logPrint(
-              '║${_indent(tabs)} ${msg.substring(i * linWidth, math.min<int>(i * linWidth + linWidth, msg.length))}',
+              '║${_indent(tabs)}   ${msg.substring(startIdx, endIdx)}${isLastLine && !isLast ? ',' : ''}',
             );
           }
         } else {
-          logPrint('║${_indent(tabs)} $key: $msg${!isLast ? ',' : ''}');
+          logPrint('$keyPrefix$msg${!isLast ? ',' : ''}');
         }
       }
     });

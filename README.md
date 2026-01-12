@@ -1,30 +1,63 @@
-## **My Flutter App**
+## **Flutter Base Project**
 
 [![Flutter Version](https://img.shields.io/badge/flutter-3.32.0-blue)](https://flutter.dev)
 [![Dart Version](https://img.shields.io/badge/dart-3.8.0-blue)](https://dart.dev)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen)]()
 
-A **Clean Architecture** Flutter starter project, using **Go Router** for navigation. Designed to be modular, testable, and scalable.
+A **production-ready Flutter base** with **Clean Architecture**, **BLoC pattern**, and **centralized error handling**. Built for team scalability and feature extensibility.
+
+> **New to this project?** Start with [⚡ QUICK_START.md](./QUICK_START.md) (5 min setup)
+> 
+> **Want deep dive?** Read [📖 DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)
 
 ---
 
 ## 📖 Table of Contents
 
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Project Structure](#project-structure)
-5. [Getting Started](#getting-started)
-6. [Data Flow](#data-flow)
-7. [Testing](#testing)
-8. [Contributing](#contributing)
-9. [License](#license)
+1. [Quick Start](#quick-start)
+2. [Overview](#overview)
+3. [Features](#features)
+4. [Architecture](#architecture)
+5. [Key Technologies](#key-technologies)
+6. [Project Structure](#project-structure)
+7. [Guides](#guides)
+8. [Development](#development)
+9. [Testing](#testing)
+10. [Contributing](#contributing)
+11. [License](#license)
+
+---
+
+## ⚡ Quick Start
+
+```bash
+# 1. Clone & setup
+git clone <repo>
+cd flutter_base
+flutter pub get
+
+# 2. Run
+flutter run
+
+# 3. Test login (debug console shows cURL command)
+# Email: eve.holt@reqres.in | Any password
+```
+
+**See [QUICK_START.md](./QUICK_START.md) for details.**
 
 ---
 
 ## 🔍 Overview
 
-A basic Flutter application built on **Clean Architecture** principles, with clear separation of concerns across presentation, domain, and data layers. Uses **Go Router** for declarative, type-safe routing.
+A **production-ready** Flutter base built on **Clean Architecture** with:
+- **Exception-based error handling** (no Either/dartz)
+- **BLoC pattern** for state management
+- **Centralized dependency injection** (GetIt)
+- **Multiple HTTP clients** for different APIs
+- **Auto curl extraction** for API debugging
+- **Global error UI** (SnackBar/Dialog)
+
+All designed for **team scalability** and **feature extensibility**.
 
 <details>
   <summary>🛠 Environment</summary>
@@ -47,60 +80,65 @@ VS Code (version 1.91.1)
 
 ---
 
-## 🚀 Features
+## 🚀 Key Features
 
-* **Modular**: Layers (presentation, domain, data) clearly separated.
-* **Routing**: Uses Go Router for nested, declarative routes.
-* **State Management**: Supports Bloc, Riverpod, Provider, or your choice.
-* **Localization**: Built-in support with generated files in `generated/` and config in `l10n/`.
-* **Core Utilities**: Network handling, error management, and common constants.
-* **Theming & Assets**: Centralized design tokens and asset generation.
-* **Testing**: Ready-made unit and integration test setups.
+* **Exception Pattern**: Simplified error handling (no Either/Left-Right)
+* **BLoC State Management**: Consistent bloc pattern across features
+* **Centralized DI**: GetIt with structured feature registration
+* **Multiple HTTP Clients**: Named instances for different APIs (main + public)
+* **Auto cURL Extraction**: Copy & test API calls instantly
+* **Global Error Handler**: Automatic, smart UI error display
+* **Feature Template**: Copy-paste structure for new features
+* **Comprehensive Docs**: [DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md) with patterns & examples
+* **Localization**: Built-in support with generated files
+* **Testing**: Unit & BLoC tests with Mocktail
 
 ---
 
 ## 🏗 Architecture
 
+### Clean Architecture Pattern
 
 ```
-                    +--------------------------+
-                    |      presentation        |
-                    |   (UI + State Manager)   |
-                    +--------------------------+
-                                |
-                                ↓
-                    +--------------------------+
-                    |         domain           |
-                    | (usecases + entities +   |
-                    |   abstract repository)   |
-                    +--------------------------+
-                                |
-                                ↓
-                    +--------------------------+
-                    |          data            |
-                    | (models + repository     |
-                    | implementation + API/db) |
-                    +--------------------------+
-
+┌─────────────────────────────────┐
+│    PRESENTATION (UI + BLoC)     │
+│  - Pages, Widgets, BLoCs        │
+│  - State Management             │
+└─────────────────┬───────────────┘
+                  │ (depends on)
+┌─────────────────▼───────────────┐
+│      DOMAIN (Business Logic)    │
+│  - Entities, UseCases           │
+│  - Abstract Repositories        │
+└─────────────────┬───────────────┘
+                  │ (implements)
+┌─────────────────▼───────────────┐
+│  DATA (API, Local Storage)      │
+│  - Models, DataSources          │
+│  - Repository Implementations   │
+└─────────────────────────────────┘
 ```
 
-1. **presentation/**
+### Error Flow
+```
+Datasource (throws AppException)
+    ↓
+Repository (transforms model)
+    ↓
+BLoC (catches exception)
+    ↓
+GlobalErrorHandler (shows UI)
+```
 
-   * UI: Widgets & Screens
-   * State: Bloc/Cubit, Riverpod, etc.
-   * Depends *only* on domain use cases.
-
-2. **domain/**
-
-   * Entities: Pure data models.
-   * UseCases: Business logic.
-   * Abstract Repositories: Contracts for data.
-
-3. **data/**
-
-   * Models: from JSON/API.
-   * DataSources: remote/local implementations.
-   * RepositoryImpl: Fulfills domain contracts.
+### Dependency Injection
+Each feature has `dependencies.dart`:
+```
+Feature → _registerDataSources()
+       → _registerRepositories()
+       → _registerUseCases()
+       → _registerBlocs()
+       → buildFeaturePage()
+```
 
 ---
 
@@ -108,35 +146,37 @@ VS Code (version 1.91.1)
 
 ```
 lib/
-├── generated/             # Localization & codegen
-├── l10n/                  # Localization config
-├── src/                   # Core source
-│   ├── core/              # Network, errors, utils
-│   ├── features/          # Feature modules
-│   │   ├── auth/          # Authentication feature
-│   │   ├── home/          # Home feature
-│   │   └── profile/       # Profile feature
-│   ├── app_nav.dart       # Route definitions
-│   ├── page_index.dart    # Page mapping
-│   ├── router/            # Routing logic - Using go router
-│   └── injection_container.dart # Dependency Injection (GetIt)
-├── main.dart              # Entry point
-└── packages/              # Local & 3rd-party packages
+├── generated/              # Localization & codegen
+├── l10n/                   # Localization files
+├── src/
+│   ├── core/               # Network, errors, utils
+│   │   ├── errors/         # AppException hierarchy
+│   │   ├── network/        # HTTP client, interceptors
+│   │   └── utils/          # Logger, storage, etc
+│   ├── features/           # Feature modules
+│   │   ├── auth/           # Auth feature (example)
+│   │   │   ├── data/
+│   │   │   ├── domain/
+│   │   │   ├── presentation/
+│   │   │   └── dependencies.dart  ← DI setup
+│   │   ├── home/           # Home feature (example)
+│   │   │   └── dependencies.dart
+│   │   └── your_feature/   ← Add new features here
+│   ├── router/             # Go Router setup
+│   ├── error_handler.dart  # GlobalErrorHandler
+│   ├── main.dart           # Entry point
+│   └── injection_container.dart  # Central DI setup
+└── packages/
+    └── app_core/           # Shared packages
 ```
 
-* `core/`: Contains common components (networking, error handling, constants).
-* `features/auth/`: Authentication feature (each feature contains: `data/`, `domain/`, `presentation/` and injection file)
-  * `data/`: Contains data source (API), models, and implementation repository
-  * `domain/`: Contains domain layer: entity definition, repository abstract, usecase
-  * `presentation`: Interface & presentation logic for auth feature
-  * `feature_injection.dart`: 
-* `injection_container.dart`: Central file for dependency injection (GetIt).
-* `page_index.dart` & `app_nav.dart`: Supports defining main routes (navigation)
-* `packages/design_assets`: 
-    * Contains assets (icons, images, fonts) of the project
-    * Helper & wrapper: using `shared_preferences` and `flutter_secure_storage` to storage, `debouncer.dart` helps debounce input operations.
-    * Consistent UI: define the theme, fonts, and typography used throughout.
-    * Reusable Widgets: define common widgets (cache image, rating bar, shimmer, read-more)
+---
+
+## 📖 Guides
+
+### Getting Started
+- **[QUICK_START.md](./QUICK_START.md)** - 5 min setup + key features
+- **[DEVELOPMENT_GUIDE.md](./DEVELOPMENT_GUIDE.md)** - Deep dive architecture + patterns
     * Automation: generate_paths.dart scans the assets folder and “generates” a Dart file containing path constants—reducing errors when refactoring assets.
 
 
