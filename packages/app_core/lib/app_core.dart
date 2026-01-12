@@ -12,3 +12,4 @@ export 'helpers/index.dart';
 export 'http/index.dart';
 export 'storage/index.dart';
 export 'widgets/index.dart';
+export 'debug/index.dart';

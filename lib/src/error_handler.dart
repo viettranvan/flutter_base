@@ -15,11 +15,11 @@ class GlobalErrorHandler {
     final ctx = context ?? _rootContext;
 
     if (ctx == null) {
-      appLogger.e('No context available for error handling');
+      AppLogger.e('No context available for error handling');
       return;
     }
 
-    appLogger.e('Error: ${exception.message}', error: exception);
+    AppLogger.e('Error: ${exception.message}', error: exception);
 
     if (exception is NetworkException) {
       _showNetworkError(ctx);

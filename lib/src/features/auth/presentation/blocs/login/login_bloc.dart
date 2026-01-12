@@ -37,11 +37,9 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       emit(LoginSuccessful());
     } on AppException catch (e) {
-      appLogger.e('Login Error: ${e.message}');
       GlobalErrorHandler.handle(e);
       emit(LoginInitial());
     } catch (e) {
-      appLogger.e('Unexpected Error', error: e);
       emit(LoginInitial());
     }
   }

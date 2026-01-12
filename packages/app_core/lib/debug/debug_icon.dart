@@ -4,8 +4,6 @@ import 'package:flutter/services.dart';
 // ignore: depend_on_referenced_packages
 import 'package:xml/xml.dart';
 
-import 'index.dart';
-
 class DebugIconPage extends StatelessWidget {
   const DebugIconPage({super.key});
 

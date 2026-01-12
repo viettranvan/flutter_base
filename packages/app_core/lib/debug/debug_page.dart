@@ -1,6 +1,9 @@
 import 'package:app_core/widgets/index.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_base/src/core/index.dart';
+
+import 'app_log.dart';
+import 'debug_font.dart';
+import 'debug_icon.dart';
 
 class DebugPage extends StatelessWidget {
   const DebugPage({super.key});
@@ -37,7 +40,17 @@ class DebugPage extends StatelessWidget {
                 );
               },
             ),
-            AppButton(title: 'App Log'),
+            AppButton(
+              title: 'App Log',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AppLogListPage(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

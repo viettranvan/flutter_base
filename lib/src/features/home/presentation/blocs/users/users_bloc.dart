@@ -21,16 +21,12 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
   ) async {
     emit(const UsersLoading());
     try {
-      appLogger.d('Fetching users...');
       final users = await getUsersUseCase.call();
-      appLogger.i('Successfully loaded ${users.length} users');
       emit(UsersLoaded(users: users));
     } on AppException catch (e) {
-      appLogger.e('App Error: ${e.message}');
       GlobalErrorHandler.handle(e);
       emit(UsersError(message: e.message));
     } catch (e) {
-      appLogger.e('Unexpected Error', error: e);
       emit(UsersError(message: 'Unexpected error: ${e.toString()}'));
     }
   }
