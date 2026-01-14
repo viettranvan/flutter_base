@@ -1,7 +1,7 @@
 import 'package:app_core/widgets/index.dart';
 import 'package:flutter/material.dart';
 
-import 'app_log.dart';
+import 'logs/app_log.dart';
 import 'debug_font.dart';
 import 'debug_icon.dart';
 

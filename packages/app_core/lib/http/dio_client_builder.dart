@@ -114,11 +114,8 @@ class DioClientBuilder {
           ),
         );
 
-    // only add logging interceptor in non-production environments
-    dio.interceptors.add(LoggingInterceptor());
-
-    // Always add logging interceptor and error interceptor
-    dio.interceptors.add(ErrorInterceptor());
+    // // Always add error interceptor
+    // dio.interceptors.add(ErrorInterceptor());
 
     // Add custom interceptors
     for (final interceptor in _additionalInterceptors) {

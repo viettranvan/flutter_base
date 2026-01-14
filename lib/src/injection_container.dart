@@ -1,6 +1,5 @@
-// 📁 lib/injection.dart
-
 import 'package:app_core/app_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/auth/dependencies.dart';
 import 'package:flutter_base/src/features/home/presentation/dependencies.dart';
@@ -17,8 +16,21 @@ class HttpClientNames {
 Future<void> setup() async {
   // await dotenv.load();
 
+  // Initialize TokenStorage before registering HTTP clients
+  final tokenStorage = DefaultTokenStorage(appStorage);
+  await tokenStorage.initialize();
+
+  // Create AppCoreConfig based on environment and build mode
+  final coreConfig = AppCoreConfig(
+    environment: EnvConfig.getEnvironment(),
+    isDebugMode: kDebugMode,
+  );
+
+  // Initialize file logging with environment-based configuration
+  await initFileLogging(coreConfig: coreConfig);
+
   // Register named HTTP clients
-  _registerHttpClients();
+  _registerHttpClients(coreConfig, tokenStorage);
 
   // Feature injections
   AuthDependencies.registerDependencies();
@@ -26,40 +38,28 @@ Future<void> setup() async {
 }
 
 /// Register all HTTP client instances with their respective base URLs
-void _registerHttpClients() {
-  // Main App Client - for main API
-  final appDioInstance = DioClientBuilder()
-      .setBaseUrl(EnvConfig.getJsonPlaceholderUrl()) // Your main API
-      .build();
-
-  // Auth/Public Client - for public APIs like reqres.in
-  final authDioInstance = DioClientBuilder()
-      .setBaseUrl(EnvConfig.getDummyJsonUrl()) // Public API
-      .build();
-
-  // Add interceptors to main client
-  final tokenStorage = DefaultTokenStorage(appStorage);
-  appDioInstance.interceptors.add(AuthInterceptor(tokenStorage: tokenStorage));
-
-  // Register with names
-  sl.registerLazySingleton<Dio>(
-    () => appDioInstance,
-    instanceName: HttpClientNames.appClient,
+/// Uses the app_core DI utilities for cleaner configuration
+/// Logging is automatically determined by AppCoreConfig based on environment and build mode
+void _registerHttpClients(AppCoreConfig coreConfig, TokenStorage tokenStorage) {
+  // Main App Client - with authentication
+  registerHttpClient(
+    name: HttpClientNames.appClient,
+    coreConfig: coreConfig,
+    config: HttpClientConfig(
+      baseUrl: EnvConfig.getJsonPlaceholderUrl(),
+      tokenStorage: tokenStorage,
+      authHandler: null, // Set your AuthEventHandler if needed
+    ),
   );
 
-  sl.registerLazySingleton<Dio>(
-    () => authDioInstance,
-    instanceName: HttpClientNames.authClient,
-  );
-
-  // Register HttpClient wrappers
-  sl.registerLazySingleton<HttpClient>(
-    () => DioHttpClient(dioInstance: appDioInstance),
-    instanceName: HttpClientNames.appClient,
-  );
-
-  sl.registerLazySingleton<HttpClient>(
-    () => DioHttpClient(dioInstance: authDioInstance),
-    instanceName: HttpClientNames.authClient,
+  // Auth/Public Client - without authentication
+  registerHttpClient(
+    name: HttpClientNames.authClient,
+    coreConfig: coreConfig,
+    config: HttpClientConfig(
+      baseUrl: EnvConfig.getDummyJsonUrl(),
+      tokenStorage: null, // No auth required
+      authHandler: null,
+    ),
   );
 }

@@ -27,9 +27,14 @@ class AuthRemoteDatasource {
 
       // Validate status code (2xx is success)
       if (response.statusCode == null || response.statusCode! ~/ 100 != 2) {
-        throw ServerException(
-          message: response.data?['error'] ?? 'Login failed',
-          statusCode: response.statusCode,
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+          error: ServerException(
+            message: response.data?['error'] ?? 'Login failed',
+            statusCode: response.statusCode,
+          ),
         );
       }
 
@@ -39,27 +44,17 @@ class AuthRemoteDatasource {
         throw GenericException(message: 'Invalid login response format');
       }
 
-      try {
-        // Map reqres.in response to AuthenticateModel
-        return AuthenticateModel.fromJson({
-          'token': data['accessToken'],
-          'refresh_token': data['refreshToken'],
-          'user': {
-            'id': data['id'] ?? 0,
-            'full_name': data['username'] ?? '',
-            'email': data['email'] ?? '',
-            'phone_number': '',
-            'created_at': DateTime.now().toString(),
-          },
-        });
-      } catch (e) {
-        // Nếu là AppException, throw lên (bubble up)
-        if (e is AppException) rethrow;
-        // Xử lý parsing error (từ AuthenticateModel.fromJson)
-        throw GenericException(
-          message: 'Error parsing login response: ${e.toString()}',
-        );
-      }
+      return AuthenticateModel.fromJson({
+        'token': data['accessToken'],
+        'refresh_token': data['refreshToken'],
+        'user': {
+          'id': data['id'] ?? 0,
+          'full_name': data['username'] ?? '',
+          'email': data['email'] ?? '',
+          'phone_number': '',
+          'created_at': DateTime.now().toString(),
+        },
+      });
     } on AppException {
       // Bubble up AppException (ServerException, GenericException, etc.)
       rethrow;

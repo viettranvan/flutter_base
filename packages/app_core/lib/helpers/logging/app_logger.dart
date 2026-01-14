@@ -1,20 +1,12 @@
+import 'package:app_core/app_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
-
-import 'file_logger.dart';
-
-// TODO: 1: chia môi trường -> log interceptor chỉ hiện ở dev?
-// TODO: 2: Có nên log reuqest vào file không?
 
 final _fileLogOutput = FileLogOutput();
 
 final _consoleLogger = Logger(
-  printer: PrettyPrinter(
-    methodCount: 0,
-    printEmojis: false,
-    colors: false,
-  ),
-  output: ConsoleOutput(),
+  printer: RawConsolePrinter(),
+  output: PlainConsoleOutput(),
 );
 
 final _fileLogger = Logger(
@@ -23,9 +15,33 @@ final _fileLogger = Logger(
   level: kDebugMode ? Level.debug : Level.info,
 );
 
-Future<void> initFileLogging() async {
+/// Initialize file logging with environment-based configuration
+Future<void> initFileLogging({AppCoreConfig? coreConfig}) async {
+  // Determine if file logging should be enabled
+  final shouldEnableFileLogging = _shouldEnableFileLogging(coreConfig);
+
+  // Configure file logging based on environment
+  _fileLogOutput.setFileLoggingEnabled(shouldEnableFileLogging);
+
+  // Always sanitize for dev/staging, optional override for production
+  final shouldSanitize = coreConfig?.environment.toLowerCase() != 'production';
+  _fileLogOutput.setSanitizationEnabled(shouldSanitize);
+
   await _fileLogOutput.init();
-  AppLogger.i('File logging initialized');
+
+  if (shouldEnableFileLogging) {
+    AppLogger.i(
+      'File logging initialized (environment: ${coreConfig?.environment ?? "unknown"})',
+    );
+  }
+}
+
+/// Determine if file logging should be enabled based on environment
+bool _shouldEnableFileLogging(AppCoreConfig? coreConfig) {
+  if (coreConfig == null) return true; // Default to enabled if no config
+
+  // Disable file logging only for production
+  return coreConfig.environment.toLowerCase() != 'production';
 }
 
 String? getLogFilePath() => _fileLogOutput.logFilePath;
@@ -34,52 +50,34 @@ Future<void> clearOldLogs({int olderThanDays = 7}) =>
     _fileLogOutput.clearOldLogs(olderThanDays: olderThanDays);
 
 class AppLogger {
-  static void d(String message, {dynamic error, StackTrace? stackTrace}) {
+  static void d(dynamic message, {dynamic error, StackTrace? stackTrace}) {
     _consoleLogger.d(message, error: error, stackTrace: stackTrace);
     _fileLogger.d(message, error: error, stackTrace: stackTrace);
   }
 
-  static void i(String message, {dynamic error, StackTrace? stackTrace}) {
+  static void i(dynamic message, {dynamic error, StackTrace? stackTrace}) {
     _consoleLogger.i(message, error: error, stackTrace: stackTrace);
     _fileLogger.i(message, error: error, stackTrace: stackTrace);
   }
 
-  static void w(String message, {dynamic error, StackTrace? stackTrace}) {
+  static void w(dynamic message, {dynamic error, StackTrace? stackTrace}) {
     _consoleLogger.w(message, error: error, stackTrace: stackTrace);
     _fileLogger.w(message, error: error, stackTrace: stackTrace);
   }
 
-  static void e(String message, {dynamic error, StackTrace? stackTrace}) {
+  static void e(dynamic message, {dynamic error, StackTrace? stackTrace}) {
     _consoleLogger.e(message, error: error, stackTrace: stackTrace);
     _fileLogger.e(message, error: error, stackTrace: stackTrace);
   }
 
-  static void f(String message, {dynamic error, StackTrace? stackTrace}) {
+  static void f(dynamic message, {dynamic error, StackTrace? stackTrace}) {
     _consoleLogger.f(message, error: error, stackTrace: stackTrace);
     _fileLogger.f(message, error: error, stackTrace: stackTrace);
   }
-}
 
-class FileLogPrinter extends LogPrinter {
-  @override
-  List<String> log(LogEvent event) {
-    final time = DateTime.now().toIso8601String();
-    final level = event.level.name.toUpperCase();
-
-    final buffer = StringBuffer()
-      ..write('[$time]')
-      ..write(' [$level]')
-      ..write(' ${event.message}');
-
-    if (event.error != null) {
-      buffer.write(' | error=${event.error}');
-    }
-
-    if (event.stackTrace != null) {
-      buffer.write('\n${event.stackTrace}');
-    }
-
-    return [buffer.toString()];
+  /// Network / interceptor logs → FILE ONLY
+  static void file(dynamic message, {dynamic error, StackTrace? stackTrace}) {
+    _fileLogger.d(message, error: error, stackTrace: stackTrace);
   }
 }
 
@@ -89,5 +87,12 @@ class PlainConsoleOutput extends LogOutput {
     for (final line in event.lines) {
       debugPrint(line);
     }
+  }
+}
+
+class RawConsolePrinter extends LogPrinter {
+  @override
+  List<String> log(LogEvent event) {
+    return [event.message.toString()];
   }
 }

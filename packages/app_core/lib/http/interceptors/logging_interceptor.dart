@@ -1,34 +1,25 @@
-import 'dart:convert';
-import 'dart:math' as math;
-
-import 'package:dio/dio.dart';
+import 'package:app_core/app_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
+
+/*
+Dio
+ → LoggingInterceptor
+   → AppLogger
+     → logger (SourceHorizon)
+       → FileLogPrinter
+         → log file (text)
+           → parseLogLine
+             → LogEntry
+               → LogDetailPage (UI)
+*/
 
 class LoggingInterceptor extends Interceptor {
-  /// Print request [Options]
-  final bool request;
-
-  /// Print request header [Options.headers]
-  final bool requestHeader;
-
-  // ignore: comment_references
-  /// Print request data [Options.data]
-  final bool requestBody;
-
   /// Print [Response.data]
   final bool responseBody;
 
   /// Print [Response.headers]
   final bool responseHeader;
-
-  /// Print error message
-  final bool error;
-
-  /// InitialTab count to logPrint json response
-  static const int kInitialTab = 1;
-
-  /// 1 tab length
-  static const String tabStep = '    ';
 
   /// Print compact json response
   final bool compact;
@@ -36,351 +27,222 @@ class LoggingInterceptor extends Interceptor {
   /// Width size per logPrint
   final int maxWidth;
 
-  /// Size in which the Uint8List will be splitted
-  static const int chunkSize = 20;
-
   /// Log printer; defaults logPrint log to console.
-  /// In flutter, you'd better use debugPrint.
-  /// you can also write log in a file.
-  final void Function(Object object) logPrint;
+  final void Function(String message) logPrint;
 
   LoggingInterceptor({
-    this.request = true,
-    this.requestHeader = false,
-    this.requestBody = false,
     this.responseHeader = false,
     this.responseBody = true,
-    this.error = true,
     this.maxWidth = 90,
     this.compact = true,
-    this.logPrint = print,
-  });
+    void Function(String message)? logPrint,
+  }) : logPrint = logPrint ?? debugPrint;
+
+  late final PrettyLogPrinter _printer = PrettyLogPrinter(
+    log: logPrint,
+    maxWidth: maxWidth,
+    compact: compact,
+  );
+  late final NetworkLogBuilder _logBuilder = NetworkLogBuilder();
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (kDebugMode) {
-      if (request) {
-        _printRequestHeader(options);
-        _printCurlCommand(options);
-      }
-      if (requestHeader) {
-        _printMapAsTable(options.queryParameters, header: 'Query Parameters');
-        final requestHeaders = <String, dynamic>{}..addAll(options.headers);
-        requestHeaders['contentType'] = options.contentType?.toString();
-        requestHeaders['responseType'] = options.responseType.toString();
-        requestHeaders['followRedirects'] = options.followRedirects;
-        requestHeaders['connectTimeout'] = options.connectTimeout?.toString();
-        requestHeaders['receiveTimeout'] = options.receiveTimeout?.toString();
-        _printMapAsTable(requestHeaders, header: 'Headers');
-        _printMapAsTable(options.extra, header: 'Extras');
-      }
-      if (requestBody && options.method != 'GET') {
-        final dynamic data = options.data;
-        if (data != null) {
-          if (data is Map) {
-            _printMapAsTable(options.data as Map?, header: 'Body');
-          }
-          if (data is FormData) {
-            final formDataMap = <String, dynamic>{}
-              ..addEntries(data.fields)
-              ..addEntries(data.files);
-            _printMapAsTable(
-              formDataMap,
-              header: 'Form data | ${data.boundary}',
-            );
-          } else {
-            _printBlock(data.toString());
-          }
-        }
-      }
-    }
+    final requestId =
+        options.extra['requestId'] as String? ?? const Uuid().v4();
+    options.extra['requestId'] = requestId;
+    options.extra['startTime'] = DateTime.now();
 
-    super.onRequest(options, handler);
+    _printer.printApiHeader(
+      icon: '➡️',
+      title: 'API REQUEST',
+      requestId: requestId,
+      duration: 0,
+    );
+
+    _printer.printRequestHeader(
+      method: options.method,
+      uri: options.uri.toString(),
+    );
+    _printer.printCurlCommand(
+      method: options.method,
+      uri: options.uri,
+      headers: options.headers,
+      data: options.data,
+    );
+
+    // Capture request data as JSON
+    final requestJson = _captureRequestJson(options);
+    options.extra['_requestJson'] = requestJson;
+
+    handler.next(options);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    if (kDebugMode) {
-      if (error) {
-        if (err.type == DioExceptionType.badResponse) {
-          final uri = err.response?.requestOptions.uri;
-          _printBoxed(
-            header:
-                'DioError ║ Status: ${err.response?.statusCode} ${err.response?.statusMessage}',
-            text: uri.toString(),
-          );
-          if (err.response != null && err.response?.data != null) {
-            logPrint('╔ ${err.type}');
-            _printResponse(err.response!);
-          }
-          _printLine('╚');
-          logPrint('');
-        } else {
-          _printBoxed(header: 'DioError ║ ${err.type}', text: err.message);
-        }
-      }
-    }
+    final requestId = err.requestOptions.extra['requestId'] as String? ?? 'N/A';
+    final startTime = err.requestOptions.extra['startTime'] as DateTime?;
+    final duration = startTime != null
+        ? DateTime.now().difference(startTime).inMilliseconds
+        : 0;
 
-    super.onError(err, handler);
+    _printer.printApiHeader(
+      icon: '🔴',
+      title: 'API ERROR',
+      requestId: requestId,
+      duration: duration,
+    );
+
+    _printer.printDioError(
+      type: err.type.toString(),
+      message: err.message,
+      statusCode: err.response?.statusCode,
+      statusMessage: err.response?.statusMessage,
+      uri: err.response?.requestOptions.uri,
+      responseData: err.response?.data,
+    );
+
+    logPrint('');
+
+    final requestJson =
+        err.requestOptions.extra['_requestJson'] as Map<String, dynamic>?;
+    final errorJson = _captureErrorJson(err);
+
+    final logGroup = _logBuilder.error(
+      requestId: requestId,
+      options: err.requestOptions,
+      startTime: startTime ?? DateTime.now(),
+      statusCode: err.response?.statusCode ?? -1,
+      requestJson: requestJson,
+      errorJson: errorJson,
+    );
+
+    
+    AppLogger.file(logGroup);
+
+    final appException = mapDioException(err);
+
+    // Throw AppException so it bubbles up to BLoC
+    handler.reject(
+      DioException(
+        requestOptions: err.requestOptions,
+        error: appException,
+        type: err.type,
+        response: err.response,
+      ),
+    );
   }
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (kDebugMode) {
-      _printResponseHeader(response);
-      if (responseHeader) {
-        final responseHeaders = <String, String>{};
-        response.headers.forEach(
-          (k, list) => responseHeaders[k] = list.toString(),
-        );
-        _printMapAsTable(responseHeaders, header: 'Headers');
-      }
+    final requestId =
+        response.requestOptions.extra['requestId'] as String? ?? 'N/A';
+    final startTime = response.requestOptions.extra['startTime'] as DateTime?;
+    final duration = startTime != null
+        ? DateTime.now().difference(startTime).inMilliseconds
+        : 0;
 
-      if (responseBody) {
-        logPrint('╔ Body');
-        logPrint('║');
-        _printResponse(response);
-        logPrint('║');
-        _printLine('╚');
-      }
-    }
-
-    super.onResponse(response, handler);
-  }
-
-  void _printBoxed({String? header, String? text}) {
-    logPrint('');
-    logPrint('╔╣ $header');
-    logPrint('║  $text');
-    _printLine('╚');
-  }
-
-  void _printResponse(Response response) {
-    if (response.data != null) {
-      if (response.data is Map) {
-        _printPrettyMap(response.data as Map);
-      } else if (response.data is Uint8List) {
-        logPrint('║${_indent()}[');
-        _printUint8List(response.data as Uint8List);
-        logPrint('║${_indent()}]');
-      } else if (response.data is List) {
-        logPrint('║${_indent()}[');
-        _printList(response.data as List);
-        logPrint('║${_indent()}]');
-      } else {
-        _printBlock(response.data.toString());
-      }
-    }
-  }
-
-  void _printResponseHeader(Response response) {
-    final uri = response.requestOptions.uri;
-    final method = response.requestOptions.method;
-    _printBoxed(
-      header:
-          'Response ║ $method ║ Status: ${response.statusCode} ${response.statusMessage}',
-      text: uri.toString(),
+    _printer.printApiHeader(
+      icon: '🟢',
+      title: 'API SUCCESS',
+      requestId: requestId,
+      duration: duration,
     );
-  }
 
-  void _printRequestHeader(RequestOptions options) {
-    final uri = options.uri;
-    final method = options.method;
-    _printBoxed(header: 'Request ║ $method ', text: uri.toString());
-  }
+    _printer.printResponseHeader(
+      method: response.requestOptions.method,
+      uri: response.requestOptions.uri.toString(),
+      statusCode: response.statusCode,
+      statusMessage: response.statusMessage,
+    );
 
-  void _printCurlCommand(RequestOptions options) {
-    final uri = options.uri;
-    final method = options.method;
-
-    // Build curl command
-    final parts = <String>[];
-    parts.add('curl -X $method');
-    parts.add('"$uri"');
-
-    // Add headers
-    options.headers.forEach((key, value) {
-      if (key.toLowerCase() != 'host' &&
-          key.toLowerCase() != 'content-length' &&
-          key.toLowerCase() != 'accept-encoding') {
-        parts.add('-H "$key: $value"');
-      }
-    });
-
-    // Add body if not GET
-    if (method != 'GET' && options.data != null) {
-      String bodyStr = '';
-      if (options.data is Map) {
-        bodyStr = jsonEncode(options.data);
-      } else if (options.data is String) {
-        bodyStr = options.data.toString();
-      } else {
-        bodyStr = options.data.toString();
-      }
-      // Escape quotes in body
-      bodyStr = bodyStr.replaceAll('"', '\\"');
-      parts.add('-d "$bodyStr"');
+    if (responseHeader) {
+      final responseHeaders = <String, dynamic>{};
+      response.headers.forEach((k, list) => responseHeaders[k] = list);
+      _printer.printResponseHeaders(responseHeaders);
     }
 
-    // Join with space and backslash for line continuation
-    final curlCommand = parts.join(' \\\n');
-
-    logPrint('');
-    logPrint('╔╣ cURL Command');
-    logPrint('║');
-
-    // Print curl command lines with box format
-    final curlLines = curlCommand.split('\n');
-    for (final line in curlLines) {
-      logPrint('║  $line');
-    }
-
-    logPrint('║');
-    _printLine('╚');
-  }
-
-  void _printLine([String pre = '', String suf = '╝']) =>
-      logPrint('$pre${'═' * maxWidth}$suf');
-
-  void _printKV(String? key, Object? v) {
-    final pre = '╟ $key: ';
-    final msg = v.toString();
-
-    if (pre.length + msg.length > maxWidth) {
-      logPrint(pre);
-      _printBlock(msg);
-    } else {
-      logPrint('$pre$msg');
-    }
-  }
-
-  void _printBlock(String msg) {
-    final lines = (msg.length / maxWidth).ceil();
-    for (var i = 0; i < lines; ++i) {
-      logPrint(
-        (i >= 0 ? '║ ' : '') +
-            msg.substring(
-              i * maxWidth,
-              math.min<int>(i * maxWidth + maxWidth, msg.length),
-            ),
+    if (responseBody) {
+      _printer.printResponseBody(
+        data: response.data,
+        includeHeader: true,
       );
     }
-  }
 
-  String _indent([int tabCount = kInitialTab]) => tabStep * tabCount;
+    logPrint('');
 
-  void _printPrettyMap(
-    Map data, {
-    int initialTab = kInitialTab,
-    bool isListItem = false,
-    bool isLast = false,
-  }) {
-    var tabs = initialTab;
-    final isRoot = tabs == kInitialTab;
-    final initialIndent = _indent(tabs);
-    tabs++;
-
-    if (isRoot || isListItem) logPrint('║$initialIndent{');
-
-    data.keys.toList().asMap().forEach((index, dynamic key) {
-      final isLast = index == data.length - 1;
-      dynamic value = data[key];
-      if (value is String) {
-        value = '"${value.replaceAll(RegExp(r'([\r\n])+'), " ")}"';
-      }
-      if (value is Map) {
-        if (compact && _canFlattenMap(value)) {
-          logPrint('║${_indent(tabs)} $key: $value${!isLast ? ',' : ''}');
-        } else {
-          logPrint('║${_indent(tabs)} $key: {');
-          _printPrettyMap(value, initialTab: tabs);
-        }
-      } else if (value is List) {
-        if (compact && _canFlattenList(value)) {
-          logPrint('║${_indent(tabs)} $key: $value');
-        } else {
-          logPrint('║${_indent(tabs)} $key: [');
-          _printList(value, tabs: tabs);
-          logPrint('║${_indent(tabs)} ]${isLast ? '' : ','}');
-        }
-      } else {
-        final msg = value.toString().replaceAll('\n', '');
-        final keyPrefix = '║${_indent(tabs)} $key: ';
-        final linWidth = maxWidth - _indent(tabs).length;
-
-        if (msg.length + keyPrefix.length > maxWidth) {
-          // String too long, print key and split value across multiple lines
-          logPrint(keyPrefix);
-          final lines = (msg.length / linWidth).ceil();
-          for (var i = 0; i < lines; ++i) {
-            final startIdx = i * linWidth;
-            final endIdx = math.min<int>(i * linWidth + linWidth, msg.length);
-            final isLastLine = i == lines - 1;
-            logPrint(
-              '║${_indent(tabs)}   ${msg.substring(startIdx, endIdx)}${isLastLine && !isLast ? ',' : ''}',
-            );
-          }
-        } else {
-          logPrint('$keyPrefix$msg${!isLast ? ',' : ''}');
-        }
-      }
-    });
-
-    logPrint('║$initialIndent}${isListItem && !isLast ? ',' : ''}');
-  }
-
-  void _printList(List list, {int tabs = kInitialTab}) {
-    list.asMap().forEach((i, dynamic e) {
-      final isLast = i == list.length - 1;
-      if (e is Map) {
-        if (compact && _canFlattenMap(e)) {
-          logPrint('║${_indent(tabs)}  $e${!isLast ? ',' : ''}');
-        } else {
-          _printPrettyMap(
-            e,
-            initialTab: tabs + 1,
-            isListItem: true,
-            isLast: isLast,
-          );
-        }
-      } else {
-        logPrint('║${_indent(tabs + 2)} $e${isLast ? '' : ','}');
-      }
-    });
-  }
-
-  void _printUint8List(Uint8List list, {int tabs = kInitialTab}) {
-    final chunks = [];
-    for (var i = 0; i < list.length; i += chunkSize) {
-      chunks.add(
-        list.sublist(
-          i,
-          i + chunkSize > list.length ? list.length : i + chunkSize,
-        ),
-      );
-    }
-    for (final element in chunks) {
-      logPrint('║${_indent(tabs)} ${element.join(", ")}');
-    }
-  }
-
-  bool _canFlattenMap(Map map) {
-    return map.values
-            .where((dynamic val) => val is Map || val is List)
-            .isEmpty &&
-        map.toString().length < maxWidth;
-  }
-
-  bool _canFlattenList(List list) {
-    return list.length < 10 && list.toString().length < maxWidth;
-  }
-
-  void _printMapAsTable(Map? map, {String? header}) {
-    if (map == null || map.isEmpty) return;
-    logPrint('╔ $header ');
-    map.forEach(
-      (dynamic key, dynamic value) => _printKV(key.toString(), value),
+    final requestJson =
+        response.requestOptions.extra['_requestJson'] as Map<String, dynamic>?;
+    final responseJson = _captureResponseJson(response);
+    final statusCode = response.statusCode ?? -1;
+    final logGroup = _logBuilder.success(
+      requestId: requestId,
+      options: response.requestOptions,
+      startTime: startTime ?? DateTime.now(),
+      statusCode: statusCode,
+      requestJson: requestJson,
+      responseJson: responseJson,
     );
-    _printLine('╚');
+    AppLogger.file(logGroup);
+
+    handler.next(response);
+  }
+
+// ======== PRIVATE HELPERS ========
+
+  /// Captures request data as structured JSON
+  Map<String, dynamic> _captureRequestJson(RequestOptions options) {
+    try {
+      return {
+        'method': options.method,
+        'url': options.uri.toString(),
+        'path': options.path,
+        'queryParameters':
+            options.queryParameters.isNotEmpty ? options.queryParameters : null,
+        'headers':
+            options.headers.isNotEmpty ? Map.from(options.headers) : null,
+        'body': options.data,
+        'contentType': options.contentType?.toString(),
+      };
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Captures response data as structured JSON
+  Map<String, dynamic> _captureResponseJson(Response response) {
+    try {
+      final responseHeaders = <String, dynamic>{};
+      response.headers.forEach((k, list) => responseHeaders[k] = list);
+
+      return {
+        'statusCode': response.statusCode,
+        'statusMessage': response.statusMessage,
+        'headers': responseHeaders.isNotEmpty ? responseHeaders : null,
+        'data': response.data,
+      };
+    } catch (e) {
+      return {};
+    }
+  }
+
+  /// Captures error data as structured JSON
+  Map<String, dynamic> _captureErrorJson(DioException err) {
+    try {
+      final responseHeaders = <String, dynamic>{};
+      if (err.response != null) {
+        err.response!.headers.forEach((k, list) => responseHeaders[k] = list);
+      }
+
+      return {
+        'type': err.type.toString(),
+        'message': err.message,
+        'statusCode': err.response?.statusCode,
+        'statusMessage': err.response?.statusMessage,
+        'headers': responseHeaders.isNotEmpty ? responseHeaders : null,
+        'data': err.response?.data,
+      };
+    } catch (e) {
+      return {};
+    }
   }
 }

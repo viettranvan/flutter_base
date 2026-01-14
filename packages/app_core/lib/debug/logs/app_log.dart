@@ -1,10 +1,10 @@
 import 'dart:io';
 
+import 'package:app_core/app_core.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import 'log_detail.dart';
 
 class AppLogListPage extends StatefulWidget {
   const AppLogListPage({super.key});

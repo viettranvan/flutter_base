@@ -1,3 +1,3 @@
 export 'debouncer.dart';
-export 'extension/index.dart';
+export 'extensions/index.dart';
 export 'logging/index.dart';
