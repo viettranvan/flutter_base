@@ -39,3 +39,18 @@ class ProfileError extends ProfileState {
   @override
   List<Object?> get props => [exception];
 }
+
+/// Success state when logout is completed
+class LogoutSuccess extends ProfileState {
+  const LogoutSuccess();
+}
+
+/// Error state when logout fails
+class LogoutError extends ProfileState {
+  final String error;
+
+  const LogoutError({required this.error});
+
+  @override
+  List<Object?> get props => [error];
+}

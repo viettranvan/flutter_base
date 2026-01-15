@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:app_core/app_core.dart';
 
@@ -64,8 +65,10 @@ class AuthInterceptor extends QueuedInterceptor {
 
     // Step 3: Get refresh token from storage
     final refreshToken = tokenStorage.getRefreshToken();
+
     if (refreshToken == null || refreshToken.isEmpty) {
       // No refresh token available → session expired
+      log('1');
       await authHandler!.onSessionExpired();
       handler.reject(err);
       return;
@@ -87,6 +90,8 @@ class AuthInterceptor extends QueuedInterceptor {
 
       if (newAccessToken == null || newAccessToken.isEmpty) {
         // Refresh failed → session expired
+        log('2');
+
         await authHandler!.onSessionExpired();
         handler.reject(err);
         return;
@@ -121,6 +126,8 @@ class AuthInterceptor extends QueuedInterceptor {
       } catch (retryErr) {
         // Retry failed - check if still 401 (token really expired)
         if (retryErr is DioException && retryErr.response?.statusCode == 401) {
+          log('3');
+
           await authHandler!.onSessionExpired();
         }
 
@@ -139,6 +146,8 @@ class AuthInterceptor extends QueuedInterceptor {
     } catch (e) {
       // Refresh request itself failed or unexpected error
       // Treat as session expired
+      log('4');
+
       await authHandler!.onSessionExpired();
       handler.reject(err);
     }

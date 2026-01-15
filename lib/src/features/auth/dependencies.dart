@@ -41,6 +41,6 @@ class AuthDependencies {
 
   /// Register all blocs
   static void _registerBlocs() {
-    _sl.registerFactory(() => LoginBloc(_sl(), appStorage));
+    _sl.registerFactory(() => LoginBloc(_sl(), _sl<TokenStorage>()));
   }
 }

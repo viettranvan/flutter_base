@@ -41,7 +41,12 @@ class ProfileDependencies {
 
   /// Register all blocs
   static void _registerBlocs() {
-    _sl.registerFactory(() => ProfileBloc(getUserProfileUseCase: _sl()));
+    _sl.registerFactory(
+      () => ProfileBloc(
+        getUserProfileUseCase: _sl(),
+        tokenStorage: _sl<TokenStorage>(),
+      ),
+    );
   }
 
   /// Build the Profile page with all necessary providers

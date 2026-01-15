@@ -18,9 +18,15 @@ class HttpClientNames {
 Future<void> setup() async {
   // await dotenv.load();
 
-  // Initialize TokenStorage before registering HTTP clients
-  final tokenStorage = DefaultTokenStorage(appStorage);
-  await tokenStorage.initialize();
+  // Initialize all storages (TokenStorage, PreferenceStorage, etc.)
+  // MUST be called before accessing any storage or creating other components
+  await StorageFactory.initialize();
+
+  // Register TokenStorage as singleton for DI
+  sl.registerSingleton<TokenStorage>(StorageFactory.tokenStorage);
+
+  // Register PreferenceStorage as singleton for DI
+  sl.registerSingleton<PreferenceStorage>(StorageFactory.preferenceStorage);
 
   // Create AppCoreConfig based on environment and build mode
   final coreConfig = AppCoreConfig(
@@ -32,7 +38,7 @@ Future<void> setup() async {
   await initFileLogging(coreConfig: coreConfig);
 
   // Register named HTTP clients
-  _registerHttpClients(coreConfig, tokenStorage);
+  _registerHttpClients(coreConfig, StorageFactory.tokenStorage);
 
   // Feature injections
   AuthDependencies.registerDependencies();
@@ -61,8 +67,8 @@ void _registerHttpClients(AppCoreConfig coreConfig, TokenStorage tokenStorage) {
     coreConfig: coreConfig,
     config: HttpClientConfig(
       baseUrl: EnvConfig.getDummyJsonUrl(),
-      tokenStorage: tokenStorage, // No auth required
-      authHandler: AuthHandler(),
+      tokenStorage: tokenStorage,
+      authHandler: AuthHandler(tokenStorage),
     ),
   );
 }

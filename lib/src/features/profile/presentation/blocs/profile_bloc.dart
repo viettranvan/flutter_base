@@ -5,11 +5,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 /// Bloc for managing profile feature
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetUserProfileUseCase getUserProfileUseCase;
+  final TokenStorage tokenStorage;
 
-  ProfileBloc({required this.getUserProfileUseCase})
+  ProfileBloc({required this.getUserProfileUseCase, required this.tokenStorage})
     : super(const ProfileInitial()) {
     on<FetchUserProfileEvent>(_onFetchUserProfile);
     on<RefreshUserProfileEvent>(_onRefreshUserProfile);
+    on<LogoutEvent>(_onLogout);
   }
 
   /// Handle fetch user profile event
@@ -54,6 +56,19 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           ),
         ),
       );
+    }
+  }
+
+  /// Handle logout event - clears tokens and emits success/error state
+  Future<void> _onLogout(LogoutEvent event, Emitter<ProfileState> emit) async {
+    try {
+      // Clear tokens from storage
+      await tokenStorage.clearTokens();
+
+      // Emit success state - UI will navigate to login
+      emit(const LogoutSuccess());
+    } catch (e) {
+      emit(LogoutError(error: e.toString()));
     }
   }
 }

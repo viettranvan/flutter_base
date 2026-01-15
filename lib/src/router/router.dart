@@ -74,7 +74,7 @@ class _AppRouter {
     redirect: (context, state) async {
       final publicPaths = {RouteName.signIn.path, RouteName.signUp.path};
 
-      final accessToken = await appStorage.getValue(AppStorageKey.accessToken);
+      final accessToken = StorageFactory.tokenStorage.getAccessToken();
       final currentPath = state.uri.path;
       final isLoggedIn = (accessToken ?? '').isNotEmpty;
       // if already logged in and trying to access a public page => redirect to home

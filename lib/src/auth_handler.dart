@@ -102,6 +102,10 @@ import 'package:go_router/go_router.dart';
 /// ```
 
 class AuthHandler extends AuthEventHandler<String, String> {
+  final TokenStorage tokenStorage;
+
+  AuthHandler(this.tokenStorage);
+
   @override
   Future<void> onParsedNewToken(String newToken) {
     AppLogger.i('Token refreshed');
@@ -136,8 +140,7 @@ class AuthHandler extends AuthEventHandler<String, String> {
         actions: [
           TextButton(
             onPressed: () async {
-              await appStorage.deleteValue(AppStorageKey.accessToken);
-              await appStorage.deleteValue(AppStorageKey.refreshToken);
+              await tokenStorage.clearTokens();
               if (context.mounted) {
                 context.pushReplacement(RouteName.signIn.path);
               }

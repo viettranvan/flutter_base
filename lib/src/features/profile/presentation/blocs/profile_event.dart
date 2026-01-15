@@ -17,3 +17,8 @@ class FetchUserProfileEvent extends ProfileEvent {
 class RefreshUserProfileEvent extends ProfileEvent {
   const RefreshUserProfileEvent();
 }
+
+/// Event to logout user - clears tokens and navigates to login
+class LogoutEvent extends ProfileEvent {
+  const LogoutEvent();
+}

@@ -25,35 +25,55 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(S.of(context).profile),
-        actions: [
-          // Refresh button
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _profileBloc.add(const RefreshUserProfileEvent());
-            },
-          ),
-        ],
-      ),
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        builder: (context, state) {
-          if (state is ProfileLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return BlocListener<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        // Handle logout success - navigate to login
+        if (state is LogoutSuccess) {
+          context.pushReplacement(RouteName.signIn.path);
+          return;
+        }
 
-          if (state is ProfileError) {
-            return _buildErrorState(context, state.exception);
-          }
+        // Handle logout error - show error message
+        if (state is LogoutError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Logout failed: ${state.error}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(S.of(context).profile),
+          actions: [
+            // Refresh button
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () {
+                _profileBloc.add(const RefreshUserProfileEvent());
+              },
+            ),
+          ],
+        ),
+        body: BlocBuilder<ProfileBloc, ProfileState>(
+          builder: (context, state) {
+            if (state is ProfileLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (state is ProfileLoaded) {
-            return _buildProfileContent(context, state.userProfile);
-          }
+            if (state is ProfileError) {
+              return _buildErrorState(context, state.exception);
+            }
 
-          return const Center(child: Text('Unknown state'));
-        },
+            if (state is ProfileLoaded) {
+              return _buildProfileContent(context, state.userProfile);
+            }
+
+            return const Center(child: Text('Unknown state'));
+          },
+        ),
       ),
     );
   }
@@ -87,12 +107,9 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
 
           AppButton(
-            onPressed: () async {
-              await appStorage.deleteValue(AppStorageKey.accessToken);
-              await appStorage.deleteValue(AppStorageKey.refreshToken);
-              if (context.mounted) {
-                context.pushReplacement(RouteName.signIn.path);
-              }
+            onPressed: () {
+              // Trigger logout event - clears tokens and navigates
+              _profileBloc.add(const LogoutEvent());
             },
             title: S.current.logout,
           ),

@@ -12,9 +12,9 @@ part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
   final LoginUsecase loginUseCase;
-  final IAppStorage appStorage;
+  final TokenStorage tokenStorage;
 
-  LoginBloc(this.loginUseCase, this.appStorage) : super(LoginInitial()) {
+  LoginBloc(this.loginUseCase, this.tokenStorage) : super(LoginInitial()) {
     on<LoginRequested>(_onLoginRequested);
   }
 
@@ -32,8 +32,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         password: passworkCtrl.text,
       );
 
-      await appStorage.setValue(AppStorageKey.accessToken, auth.accessToken);
-      await appStorage.setValue(AppStorageKey.refreshToken, auth.refreshToken);
+      await tokenStorage.saveAccessToken(auth.accessToken);
+      await tokenStorage.saveRefreshToken(auth.refreshToken);
 
       emit(LoginSuccessful());
     } on AppException catch (e) {
