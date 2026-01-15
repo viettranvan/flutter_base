@@ -2,7 +2,7 @@ import 'package:app_core/app_core.dart';
 import 'package:flutter_base/src/features/auth/auth_index.dart';
 
 abstract class LoginRemoteDatasource {
-  Future<UserModel> login(String email, String password);
+  Future<AuthenticateModel> login(String email, String password);
 }
 
 class AuthRemoteDatasource {
@@ -44,17 +44,7 @@ class AuthRemoteDatasource {
         throw GenericException(message: 'Invalid login response format');
       }
 
-      return AuthenticateModel.fromJson({
-        'token': data['accessToken'],
-        'refresh_token': data['refreshToken'],
-        'user': {
-          'id': data['id'] ?? 0,
-          'full_name': data['username'] ?? '',
-          'email': data['email'] ?? '',
-          'phone_number': '',
-          'created_at': DateTime.now().toString(),
-        },
-      });
+      return AuthenticateModel.fromJson(response.data);
     } on AppException {
       // Bubble up AppException (ServerException, GenericException, etc.)
       rethrow;

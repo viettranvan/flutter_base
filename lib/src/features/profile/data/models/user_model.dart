@@ -1,10 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_base/src/core/index.dart';
-import 'package:flutter_base/src/features/auth/auth_index.dart';
 
-class AuthenticateModel extends Equatable {
-  final String accessToken;
-  final String refreshToken;
+class UserModel extends Equatable {
   final int? id;
   final String? username;
   final String? email;
@@ -13,9 +10,7 @@ class AuthenticateModel extends Equatable {
   final String? gender;
   final String? image;
 
-  const AuthenticateModel({
-    required this.accessToken,
-    required this.refreshToken,
+  const UserModel({
     this.id,
     this.username,
     this.email,
@@ -25,10 +20,8 @@ class AuthenticateModel extends Equatable {
     this.image,
   });
 
-  factory AuthenticateModel.fromJson(Map<String, dynamic> json) {
-    return AuthenticateModel(
-      accessToken: json['accessToken'] ?? '',
-      refreshToken: json['refreshToken'] ?? '',
+  factory UserModel.fromJson(Map<String, dynamic> json) {
+    return UserModel(
       id: json['id'] == null ? null : json['id'] as int,
       username: json['username'] == null ? null : json['username'] as String,
       email: json['email'] == null ? null : json['email'] as String,
@@ -40,30 +33,26 @@ class AuthenticateModel extends Equatable {
   }
 
   /// Convert to domain entity
-  Authenticate toEntity() {
-    return Authenticate(
-      accessToken: accessToken,
-      refreshToken: refreshToken,
-      user: User(
-        id: id,
-        username: username,
-        email: email,
-        firstName: firstName,
-        lastName: lastName,
-        gender: gender,
-        image: image,
-      ),
+  User toEntity() {
+    return User(
+      id: id,
+      username: username,
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      gender: gender,
+      image: image,
     );
   }
 
   @override
   List<Object?> get props => [
-    accessToken,
-    refreshToken,
     id,
     username,
     email,
     firstName,
     lastName,
+    gender,
+    image,
   ];
 }

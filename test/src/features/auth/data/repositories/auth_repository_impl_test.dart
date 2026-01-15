@@ -17,17 +17,12 @@ void main() {
   const email = 'test@example.com';
   const password = 'password123';
 
-  const userModel = UserModel(
-    id: 1,
-    name: 'Test User',
-    email: email,
-    phoneNumber: '0123456789',
-  );
+
 
   const authenticateModel = AuthenticateModel(
     accessToken: 'access-token',
     refreshToken: 'refresh-token',
-    user: userModel,
+    // user: null,
   );
 
   test('should return Authenticate when datasource returns model', () async {
@@ -43,6 +38,8 @@ void main() {
     expect(result, equals(authenticateModel.toEntity()));
     expect(result.accessToken, equals('access-token'));
     expect(result.refreshToken, equals('refresh-token'));
+    // expect(result.user?.fullName, equals('Test User'));
+    expect(result.user?.email, equals(email));
 
     verify(() => mockDatasource.login(email, password)).called(1);
     verifyNoMoreInteractions(mockDatasource);

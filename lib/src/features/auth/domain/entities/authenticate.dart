@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
-
-import 'user.dart';
+import 'package:flutter_base/src/core/index.dart';
 
 class Authenticate extends Equatable {
   final String accessToken;

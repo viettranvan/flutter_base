@@ -210,6 +210,7 @@ void _registerHttpClient({
   if (config.tokenStorage != null && config.authHandler != null) {
     dio.interceptors.add(
       AuthInterceptor(
+        dio: dio,
         tokenStorage: config.tokenStorage!,
         authHandler: config.authHandler!,
       ),

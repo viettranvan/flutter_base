@@ -1,8 +1,10 @@
 import 'package:app_core/app_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_base/src/auth_handler.dart';
 import 'package:flutter_base/src/core/index.dart';
 import 'package:flutter_base/src/features/auth/dependencies.dart';
 import 'package:flutter_base/src/features/home/presentation/dependencies.dart';
+import 'package:flutter_base/src/features/profile/presentation/dependencies.dart';
 
 final sl = GetIt.instance;
 
@@ -35,6 +37,7 @@ Future<void> setup() async {
   // Feature injections
   AuthDependencies.registerDependencies();
   HomeDependencies.registerDependencies();
+  ProfileDependencies.registerDependencies();
 }
 
 /// Register all HTTP client instances with their respective base URLs
@@ -58,8 +61,8 @@ void _registerHttpClients(AppCoreConfig coreConfig, TokenStorage tokenStorage) {
     coreConfig: coreConfig,
     config: HttpClientConfig(
       baseUrl: EnvConfig.getDummyJsonUrl(),
-      tokenStorage: null, // No auth required
-      authHandler: null,
+      tokenStorage: tokenStorage, // No auth required
+      authHandler: AuthHandler(),
     ),
   );
 }
