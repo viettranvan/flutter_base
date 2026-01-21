@@ -36,14 +36,20 @@ git clone <repo>
 cd flutter_base
 flutter pub get
 
-# 2. Run
+# 2. Setup Git Hooks (auto format, analyze, test)
+bash .githooks/setup.sh
+
+# 3. Run
 flutter run
 
-# 3. Test login (debug console shows cURL command)
+# 4. Test login (debug console shows cURL command)
 # Email: eve.holt@reqres.in | Any password
 ```
 
 **See [QUICK_START.md](./QUICK_START.md) for details.**
+
+> 💡 **Git Hooks Setup**: Runs `dart format`, `flutter analyze`, `flutter test`, and validates commit messages automatically.  
+> Read more: [GIT_HOOKS_SETUP.md](./docs/GIT_HOOKS_SETUP.md)
 
 ---
 

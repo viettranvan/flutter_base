@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Commit-msg hook for validating conventional commits
+# Called after pre-commit (safety layer if user edits message in editor)
+# Delegates to validate-message.sh for DRY principle
+
+# Get the directory of this script
+HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Call shared validation script
+bash "$HOOKS_DIR/validate-message.sh" "$1"
+exit $?
+
